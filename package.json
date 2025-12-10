@@ -1,4 +1,24 @@
 {
-  "name": "rollipop",
-  "packageManager": "yarn@4.4.1"
+  "name": "rollipop-monorepo",
+  "private": true,
+  "workspaces": [
+    "example",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "oxlint --type-aware --deny-warnings",
+    "lint:fix": "oxlint --type-aware --deny-warnings --fix",
+    "format": "oxfmt"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "oxfmt": "^0.17.0",
+    "oxlint": "^1.32.0",
+    "oxlint-tsgolint": "^0.8.5",
+    "typescript": "^5.9.3"
+  },
+  "resolutions": {
+    "hermes-compiler": "250829098.0.4"
+  },
+  "packageManager": "yarn@4.12.0"
 }

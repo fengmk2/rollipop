@@ -1,0 +1,18 @@
+{
+  "name": "rollipop",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leegeunhyeok/rollipop.git",
+    "directory": "packages/rollipop"
+  },
+  "author": "leegeunhyeok <dev.ghlee@gmail.com> (https://github.com/leegeunhyeok)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leegeunhyeok/rollipop/issues"
+  },
+  "homepage": "https://github.com/leegeunhyeok/rollipop#readme",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
