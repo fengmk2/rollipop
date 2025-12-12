@@ -7,7 +7,11 @@ export interface Config {
   transformer?: TransformerConfig;
   serializer?: SerializerConfig;
   reactNative?: ReactNativeConfig;
-  INTERNAL__rolldown?: RolldownConfig;
+  plugins?: rolldown.Plugin[];
+  INTERNAL__rolldown?:
+    | RolldownConfig
+    | ((config: RolldownConfig) => RolldownConfig)
+    | ((config: RolldownConfig) => Promise<RolldownConfig>);
 }
 
 export interface ResolverConfig {
@@ -41,6 +45,6 @@ export interface CodegenConfig {
 }
 
 export interface RolldownConfig {
-  input?: rolldown.InputOption;
+  input?: rolldown.InputOptions;
   output?: rolldown.OutputOptions;
 }

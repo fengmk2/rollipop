@@ -4,7 +4,11 @@ async function main() {
   const config = await loadConfig(process.cwd());
   const bundler = new Bundler(config);
 
-  await bundler.build();
+  await bundler.build({
+    dev: true,
+    platform: 'ios',
+    outDir: 'dist',
+  });
 }
 
 main()

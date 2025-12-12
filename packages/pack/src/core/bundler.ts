@@ -1,53 +1,33 @@
+import path from 'node:path';
 import * as rolldown from 'rolldown';
 import { invariant } from 'es-toolkit';
-import { toRolldownOptions } from 'src/config/to-rolldown-options';
-import { stripFlowSyntaxPlugin } from './plugins/strip-flow-syntax-plugin';
-import { preludePlugin } from './plugins/prelude-plugin';
-import { assetRegistryPlugin } from './plugins/asset-registry-plugin';
-import { codegenPlugin } from './plugins/codegen-plugin';
-import { ResolvedConfig } from 'src/config/defaults';
+import { resolveRolldownOptions } from 'src/config/resolve-rolldown-options';
+import type { ResolvedConfig } from 'src/config/defaults';
+import type { BuildOptions } from './types';
+import { toBundleFileName } from 'src/utils/to-bundle-file-name';
 
 export class Bundler {
-  private readonly rolldownInputOptions: rolldown.InputOptions;
-  private readonly rolldownOutputOptions: rolldown.OutputOptions;
-
   /**
    * @TODO
    */
   static createServer(bundler: Bundler) {}
 
-  constructor(private readonly config: ResolvedConfig) {
-    const { input, output } = toRolldownOptions(this.config, 'ios');
-    this.rolldownInputOptions = input;
-    this.rolldownOutputOptions = output;
-  }
+  constructor(private readonly config: ResolvedConfig) {}
 
-  async build() {
-    const { resolver, transformer, serializer, reactNative } = this.config;
-    const buildOptions: rolldown.BuildOptions = {
-      ...this.rolldownInputOptions,
-      plugins: [
-        preludePlugin({ modulePaths: serializer.prelude }),
-        codegenPlugin({ filter: reactNative.codegen.filter }),
-        stripFlowSyntaxPlugin({ filter: transformer.flow.filter }),
-        assetRegistryPlugin({
-          assetExtensions: resolver.assetExtensions,
-          assetRegistryPath: reactNative.assetRegistryPath,
-        }),
-      ],
+  async build(buildOptions: BuildOptions) {
+    const bundleFileName = toBundleFileName(this.config.entry, buildOptions.platform);
+    const bundleFileDestination = path.join(buildOptions.outDir ?? 'dist', bundleFileName);
+    const rolldownOptions = await resolveRolldownOptions(this.config, buildOptions);
+    const rolldownBuildOptions: rolldown.BuildOptions = {
+      ...rolldownOptions.input,
       output: {
-        ...this.rolldownOutputOptions,
-        dir: 'dist' /** @TODO */,
+        ...rolldownOptions.output,
+        file: bundleFileDestination,
       },
       write: true,
     };
 
-    const t0 = performance.now();
-    const buildResult = await rolldown.build(buildOptions);
-    const t1 = performance.now();
-
-    console.log(`Rolldown build took ${t1 - t0}ms`);
-
+    const buildResult = await rolldown.build(rolldownBuildOptions);
     const chunk = buildResult.output[0];
     invariant(chunk, 'Bundled chunk is not found');
 

@@ -68,8 +68,7 @@ export const ASSET_EXTENSIONS = [
 
 export function getDefaultConfig(basePath: string) {
   const reactNativePath = resolveReactNativePath(basePath);
-
-  return {
+  const defaultConfig = {
     root: basePath,
     entry: 'index.js',
     resolver: {
@@ -99,7 +98,9 @@ export function getDefaultConfig(basePath: string) {
         },
       },
     },
-  };
+  } satisfies Config;
+
+  return defaultConfig;
 }
 
 export type DefaultConfig = ReturnType<typeof getDefaultConfig>;
