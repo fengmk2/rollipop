@@ -1,5 +1,5 @@
 import { getInitializeCorePath, getPolyfillScriptPaths } from 'src/internal/react-native';
-import { resolveReactNativePath } from 'src/utils/resolve-react-native-path';
+import { resolvePackagePath } from 'src/utils/node-resolve';
 import type { Config } from './types';
 import * as rolldown from 'rolldown';
 
@@ -67,7 +67,8 @@ export const ASSET_EXTENSIONS = [
 ];
 
 export function getDefaultConfig(basePath: string) {
-  const reactNativePath = resolveReactNativePath(basePath);
+  const reactNativePath = resolvePackagePath(basePath, 'react-native');
+
   const defaultConfig = {
     root: basePath,
     entry: 'index.js',
@@ -76,7 +77,7 @@ export function getDefaultConfig(basePath: string) {
       assetExtensions: ASSET_EXTENSIONS,
       mainFields: RESOLVER_MAIN_FIELDS,
       conditionNames: RESOLVER_CONDITION_NAMES,
-      preferNativePlatform: true,
+      preferNativePlatform: true as boolean,
     },
     transformer: {
       flow: {
@@ -94,8 +95,8 @@ export function getDefaultConfig(basePath: string) {
       assetRegistryPath: 'react-native/Libraries/Image/AssetRegistry.js',
       codegen: {
         filter: {
-          id: /(?:^|[\\/])(?:Native\w+|(\w+)NativeComponent)\.[jt]sx?$/,
-        },
+          code: /codegenNativeComponent/,
+        } as rolldown.HookFilter,
       },
     },
   } satisfies Config;

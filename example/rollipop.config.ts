@@ -1,7 +1,7 @@
 import { defineConfig } from '@rollipop/pack';
 
 export default defineConfig((context) => {
-  console.log('context', context);
+  // console.log('context', JSON.stringify(context, null, 2));
 
   let t0 = 0;
 
@@ -9,19 +9,19 @@ export default defineConfig((context) => {
     entry: 'index.js',
     plugins: [
       {
-        name: 'test',
+        name: 'example-plugin',
         buildStart() {
           t0 = performance.now();
-          console.log('build started!');
+          this.info('Rollipop build started!');
         },
         buildEnd() {
           const t1 = performance.now();
-          console.log('build ended! took:', t1 - t0);
+          this.info(`Rollipop build finished (${t1 - t0}ms)`);
         },
       },
     ],
     INTERNAL__rolldown: (config) => {
-      console.log('rolldown config', config);
+      // console.log('rolldown config', config);
       return config;
     },
   };

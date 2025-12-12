@@ -11,10 +11,6 @@ async function main() {
   });
 }
 
-main()
-  .then(() => {
-    console.log('Build completed');
-  })
-  .catch((error) => {
-    console.error('Build failed', error);
-  });
+main().catch((error) => {
+  console.error('Build failed', error);
+});

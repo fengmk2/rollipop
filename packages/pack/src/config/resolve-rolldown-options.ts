@@ -69,6 +69,7 @@ export async function resolveRolldownOptions(config: ResolvedConfig, buildOption
        * Disable eval check because react-native uses `eval` to execute code.
        */
       eval: false,
+      pluginTimings: false,
     },
     experimental: {
       strictExecutionOrder: true,

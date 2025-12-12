@@ -44,7 +44,7 @@ export function preludePlugin(options: PreludePluginOptions): rolldown.Plugin {
         const moduleInfo = this.getModuleInfo(id);
 
         if (moduleInfo && isPreludePluginModuleInfo(moduleInfo)) {
-          this.info(`Prelude plugin found entry ${id}`);
+          this.debug(`Prelude plugin found entry ${id}`);
           const originSource = fs.readFileSync(id, 'utf-8');
           const modifiedSource = [preludeImportStatements, originSource].join('\n');
 

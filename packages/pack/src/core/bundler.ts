@@ -6,6 +6,8 @@ import type { ResolvedConfig } from 'src/config/defaults';
 import type { BuildOptions } from './types';
 import { toBundleFileName } from 'src/utils/to-bundle-file-name';
 import { printLogo } from 'src/common/print-logo';
+import { getSharedDataPath } from 'src/common/shared-data';
+import fs from 'node:fs';
 
 export class Bundler {
   /**
@@ -15,6 +17,15 @@ export class Bundler {
 
   constructor(private readonly config: ResolvedConfig) {
     printLogo();
+    this.prepare();
+  }
+
+  private prepare() {
+    const sharedDataDirectory = getSharedDataPath(this.config.root);
+
+    if (!fs.existsSync(sharedDataDirectory)) {
+      fs.mkdirSync(sharedDataDirectory, { recursive: true });
+    }
   }
 
   async build(buildOptions: BuildOptions) {

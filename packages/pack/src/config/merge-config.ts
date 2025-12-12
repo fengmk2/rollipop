@@ -21,6 +21,10 @@ export function mergeConfig(baseConfig: DefaultConfig, overrideConfig: Config): 
     reactNative: {
       ...baseConfig.reactNative,
       ...overrideConfig.reactNative,
+      codegen: {
+        filter:
+          overrideConfig?.reactNative?.codegen?.filter ?? baseConfig.reactNative.codegen.filter,
+      },
     },
     INTERNAL__rolldown: overrideConfig.INTERNAL__rolldown,
   };

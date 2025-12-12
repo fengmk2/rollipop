@@ -16,7 +16,7 @@ export function assetRegistryPlugin(options: AssetRegistryPluginOptions): rolldo
         id: new RegExp(`.(${assetExtensions.join('|')})$`),
       },
       handler(id) {
-        this.info(`Asset ${id} found`);
+        this.debug(`Asset ${id} found`);
 
         const assetData = getAssetData(id);
 

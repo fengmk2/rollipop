@@ -56,5 +56,5 @@ export function printLogo() {
     }
   });
 
-  process.exit(0);
+  console.log(''); // empty line
 }
