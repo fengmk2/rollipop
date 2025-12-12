@@ -11,3 +11,11 @@ export function getPolyfillScriptPaths(reactNativePath: string) {
   const scriptPath = path.join(reactNativePath, 'rn-get-polyfills');
   return (require(scriptPath) as () => string[])();
 }
+
+/**
+ * @TODO
+ * Before building, collect all the packages required for codegen transformation in the project.
+ */
+export function getCodegenPackageList(basePath: string) {
+  return [];
+}

@@ -1,10 +1,13 @@
 const { Bundler, loadConfig } = require('@rollipop/pack');
 
-const config = loadConfig(process.cwd());
-const bundler = new Bundler(config);
+async function main() {
+  const config = await loadConfig(process.cwd());
+  const bundler = new Bundler(config);
 
-bundler
-  .build()
+  await bundler.build();
+}
+
+main()
   .then(() => {
     console.log('Build completed');
   })

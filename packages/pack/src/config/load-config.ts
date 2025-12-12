@@ -1,17 +1,18 @@
-import { getInitializeCorePath, getPolyfillScriptPaths } from 'src/internal/react-native';
+import * as c12 from 'c12';
+import { getDefaultConfig } from './defaults';
+import { mergeConfig } from './merge-config';
 import type { Config } from './types';
-import { resolveReactNativePath } from 'src/utils/resolve-react-native-path';
 
-export function loadConfig(basePath: string): Config {
-  const reactNativePath = resolveReactNativePath(basePath);
+const CONFIG_FILE_NAME = 'rollipop.config';
 
-  // TODO
-  return {
-    root: basePath,
-    entry: 'index.js',
-    serializer: {
-      prelude: [getInitializeCorePath(basePath)],
-      polyfills: [...getPolyfillScriptPaths(reactNativePath)],
-    },
-  };
+export async function loadConfig(basePath = process.cwd()) {
+  const defaultConfig = getDefaultConfig(basePath);
+  const { config: userConfig } = await c12.loadConfig<Config>({
+    context: { defaultConfig },
+    configFile: CONFIG_FILE_NAME,
+    cwd: basePath,
+    defaultConfig,
+  });
+
+  return mergeConfig(defaultConfig, userConfig);
 }

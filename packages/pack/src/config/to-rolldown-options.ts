@@ -1,14 +1,19 @@
 import fs from 'node:fs';
 import type * as rolldown from 'rolldown';
-import { transformPolyfills } from 'src/utils/transform-polyfills';
 import { stripFlowSyntax } from 'src/transformer/flow';
-import { RESOLVER_MAIN_FIELDS, SOURCE_EXTENSIONS } from './defaults';
-import type { Config } from './types';
+import { ResolvedConfig } from './defaults';
+import { isNotNil } from 'es-toolkit';
 
-export function toRolldownOptions(config: Config, platform: string) {
-  const supportedExtensions = [...SOURCE_EXTENSIONS];
+export function toRolldownOptions(config: ResolvedConfig, platform: string) {
+  const supportedExtensions = [
+    ...config.resolver.sourceExtensions,
+    ...config.resolver.assetExtensions,
+  ];
+  const platforms = [platform, config.resolver.preferNativePlatform ? 'native' : null].filter(
+    isNotNil,
+  );
   const resolveExtensions = [
-    ...[platform, 'native'].map((platform) => {
+    ...platforms.map((platform) => {
       return supportedExtensions.map((extension) => `.${platform}.${extension}`);
     }),
     ...supportedExtensions.map((extension) => `.${extension}`),
@@ -17,9 +22,9 @@ export function toRolldownOptions(config: Config, platform: string) {
   const inputOptions: rolldown.InputOptions = {
     input: config.entry,
     resolve: {
-      extensions: [...resolveExtensions],
-      mainFields: RESOLVER_MAIN_FIELDS,
-      conditionNames: ['react-native', 'import', 'require'],
+      extensions: resolveExtensions,
+      mainFields: config.resolver.mainFields,
+      conditionNames: config.resolver.conditionNames,
     },
     transform: {
       typescript: {
@@ -72,7 +77,6 @@ export function toRolldownOptions(config: Config, platform: string) {
     format: 'iife',
     minify: false,
     keepNames: true,
-    topLevelVar: false,
   };
 
   return {
