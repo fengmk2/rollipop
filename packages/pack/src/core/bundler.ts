@@ -5,6 +5,7 @@ import { resolveRolldownOptions } from 'src/config/resolve-rolldown-options';
 import type { ResolvedConfig } from 'src/config/defaults';
 import type { BuildOptions } from './types';
 import { toBundleFileName } from 'src/utils/to-bundle-file-name';
+import { printLogo } from 'src/common/print-logo';
 
 export class Bundler {
   /**
@@ -12,7 +13,9 @@ export class Bundler {
    */
   static createServer(bundler: Bundler) {}
 
-  constructor(private readonly config: ResolvedConfig) {}
+  constructor(private readonly config: ResolvedConfig) {
+    printLogo();
+  }
 
   async build(buildOptions: BuildOptions) {
     const bundleFileName = toBundleFileName(this.config.entry, buildOptions.platform);

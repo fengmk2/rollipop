@@ -2800,8 +2800,10 @@ __metadata:
     "@types/babel__generator": "npm:^7"
     babel-plugin-syntax-hermes-parser: "npm:^0.32.1"
     c12: "npm:^3.3.2"
+    chalk: "npm:^5.6.2"
     es-toolkit: "npm:^1.42.0"
     flow-remove-types: "npm:^2.293.0"
+    gradient-string: "npm:^3.0.0"
     hermes-parser: "npm:^0.32.1"
     rolldown: "npm:1.0.0-beta.54"
     tsdown: "npm:^0.17.2"
@@ -3123,6 +3125,13 @@ __metadata:
   version: 2.0.3
   resolution: "@types/stack-utils@npm:2.0.3"
   checksum: 10c0/1f4658385ae936330581bcb8aa3a066df03867d90281cdf89cc356d404bd6579be0f11902304e1f775d92df22c6dd761d4451c804b0a4fba973e06211e9bd77c
+  languageName: node
+  linkType: hard
+
+"@types/tinycolor2@npm:^1.4.0":
+  version: 1.4.6
+  resolution: "@types/tinycolor2@npm:1.4.6"
+  checksum: 10c0/922020c3326460e9d8502c8a98f80db69f06fd14e07fe5a48e8ffe66175762298a9bd51263f2a0c9a40632886a74975a3ff79396defcdbeac0dc176e3e5056e8
   languageName: node
   linkType: hard
 
@@ -4003,6 +4012,13 @@ __metadata:
     ansi-styles: "npm:^4.1.0"
     supports-color: "npm:^7.1.0"
   checksum: 10c0/4a3fef5cc34975c898ffe77141450f679721df9dde00f6c304353fa9c8b571929123b26a0e4617bde5018977eb655b31970c297b91b63ee83bb82aeb04666880
+  languageName: node
+  linkType: hard
+
+"chalk@npm:^5.3.0, chalk@npm:^5.6.2":
+  version: 5.6.2
+  resolution: "chalk@npm:5.6.2"
+  checksum: 10c0/99a4b0f0e7991796b1e7e3f52dceb9137cae2a9dfc8fc0784a550dc4c558e15ab32ed70b14b21b52beb2679b4892b41a0aa44249bcb996f01e125d58477c6976
   languageName: node
   linkType: hard
 
@@ -5657,6 +5673,16 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: 10c0/386d011a553e02bc594ac2ca0bd6d9e4c22d7fa8cfbfc448a6d148c59ea881b092db9dbe3547ae4b88e55f1b01f7c4a2ecc53b310c042793e63aa44cf6c257f2
+  languageName: node
+  linkType: hard
+
+"gradient-string@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "gradient-string@npm:3.0.0"
+  dependencies:
+    chalk: "npm:^5.3.0"
+    tinygradient: "npm:^1.1.5"
+  checksum: 10c0/97d070cb46ac53eaeb1c54548d3a2c177d1fc722a3c2a89fb15fdcdaf6084c20df1d61382047642adf792cb9bcc8f86dee1acff7ce49c95b5c50474c38309bc5
   languageName: node
   linkType: hard
 
@@ -9557,6 +9583,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tinycolor2@npm:^1.0.0":
+  version: 1.6.0
+  resolution: "tinycolor2@npm:1.6.0"
+  checksum: 10c0/9aa79a36ba2c2a87cb221453465cabacd04b9e35f9694373e846fdc78b1c768110f81e581ea41440106c0f24d9a023891d0887e8075885e790ac40eb0e74a5c1
+  languageName: node
+  linkType: hard
+
 "tinyexec@npm:^1.0.1, tinyexec@npm:^1.0.2":
   version: 1.0.2
   resolution: "tinyexec@npm:1.0.2"
@@ -9571,6 +9604,16 @@ __metadata:
     fdir: "npm:^6.5.0"
     picomatch: "npm:^4.0.3"
   checksum: 10c0/869c31490d0d88eedb8305d178d4c75e7463e820df5a9b9d388291daf93e8b1eb5de1dad1c1e139767e4269fe75f3b10d5009b2cc14db96ff98986920a186844
+  languageName: node
+  linkType: hard
+
+"tinygradient@npm:^1.1.5":
+  version: 1.1.5
+  resolution: "tinygradient@npm:1.1.5"
+  dependencies:
+    "@types/tinycolor2": "npm:^1.4.0"
+    tinycolor2: "npm:^1.0.0"
+  checksum: 10c0/00503406e1a49822e58e90ddbda7e9db332b6a237fab5f413be9644eb29ca14f6a30e7961fc61328407fa6159437908c11eeda4f1d56e62586f9a48267d1094d
   languageName: node
   linkType: hard
 
