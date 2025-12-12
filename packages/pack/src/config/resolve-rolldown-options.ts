@@ -41,7 +41,7 @@ export async function resolveRolldownOptions(config: ResolvedConfig, buildOption
         setPublicClassFields: true,
       },
       jsx: {
-        development: true,
+        development: dev,
         runtime: 'automatic',
       },
       helpers: {
