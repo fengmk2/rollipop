@@ -1,6 +1,5 @@
 <div align="center">
 
-
 <img alt="logo" width="300" src="logo.svg">
 
 # Rollipop

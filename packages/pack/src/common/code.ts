@@ -1,6 +1,7 @@
 import dedent from 'dedent';
-import { GLOBAL_IDENTIFIER } from 'src/constants';
-import { indent } from 'src/utils/string';
+
+import { GLOBAL_IDENTIFIER } from '../constants';
+import { indent } from '../utils/string';
 
 export function asLiteral(value: unknown) {
   return JSON.stringify(value);

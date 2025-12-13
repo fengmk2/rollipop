@@ -1,18 +1,19 @@
 import path from 'node:path';
-import * as rolldown from 'rolldown';
+
 import { invariant } from 'es-toolkit';
-import type { ResolvedConfig } from 'src/config/defaults';
-import type { BuildOptions } from './types';
-import { toBundleFileName } from 'src/utils/to-bundle-file-name';
-import { printLogo } from 'src/common/print-logo';
-import { ensureSharedDataPath } from 'src/common/shared-data';
+import * as rolldown from 'rolldown';
+
+import { printLogo } from '../common/print-logo';
+import { ensureSharedDataPath } from '../common/shared-data';
+import type { ResolvedConfig } from '../config/defaults';
+import { md5 } from '../utils/hash';
+import { serialize } from '../utils/serialize';
+import { toBundleFileName } from '../utils/to-bundle-file-name';
 import { FileSystemCache } from './cache/file-system-cache';
-import { md5 } from 'src/utils/hash';
-import { serialize } from 'src/utils/serialize';
 import { resolveRolldownOptions } from './rolldown';
+import type { BuildOptions } from './types';
 
 export class Bundler {
-  private initialized = false;
   private readonly sharedDataPath: string;
   private readonly cachePath: string;
   private readonly cache: FileSystemCache;

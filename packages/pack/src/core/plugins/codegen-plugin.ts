@@ -1,5 +1,6 @@
-import * as babel from '@babel/core';
 import path from 'path';
+
+import * as babel from '@babel/core';
 import type * as rolldown from 'rolldown';
 
 export interface CodegenPluginOptions {

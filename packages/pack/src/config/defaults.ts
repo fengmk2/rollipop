@@ -1,7 +1,8 @@
-import { getInitializeCorePath, getPolyfillScriptPaths } from 'src/internal/react-native';
-import { resolvePackagePath } from 'src/utils/node-resolve';
-import type { Config } from './types';
 import * as rolldown from 'rolldown';
+
+import { getInitializeCorePath, getPolyfillScriptPaths } from '../internal/react-native';
+import { resolvePackagePath } from '../utils/node-resolve';
+import type { Config } from './types';
 
 /**
  * Unlike the Metro bundler configuration, this prioritizes resolving module(ESM) fields first.

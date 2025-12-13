@@ -1,4 +1,5 @@
 import * as c12 from 'c12';
+
 import { getDefaultConfig } from './defaults';
 import { mergeConfig } from './merge-config';
 import type { Config } from './types';

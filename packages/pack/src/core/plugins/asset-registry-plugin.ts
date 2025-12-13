@@ -1,4 +1,5 @@
 import type * as rolldown from 'rolldown';
+
 import { getAssetData } from '../assets';
 
 export interface AssetRegistryPluginOptions {

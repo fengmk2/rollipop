@@ -1,5 +1,7 @@
 import fs from 'node:fs';
+
 import * as rolldown from 'rolldown';
+
 import { shim } from './shim';
 
 const IS_ENTRY = Symbol('IS_ENTRY');

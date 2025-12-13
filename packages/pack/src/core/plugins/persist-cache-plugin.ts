@@ -1,7 +1,9 @@
-import type * as rolldown from 'rolldown';
 import fs from 'node:fs';
-import { xxhash } from 'src/utils/hash';
-import { BundlerContext } from 'src/core/types';
+
+import type * as rolldown from 'rolldown';
+
+import { BundlerContext } from '../../core/types';
+import { xxhash } from '../../utils/hash';
 import { shim } from './shim';
 
 const CACHE_HIT = Symbol('CACHE_HIT');

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+
 import { xxh32 } from '@node-rs/xxhash';
 
 export function xxhash(data: string) {

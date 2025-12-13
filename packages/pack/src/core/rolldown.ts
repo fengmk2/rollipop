@@ -1,16 +1,18 @@
-import type * as rolldown from 'rolldown';
-import { ResolvedConfig } from 'src/config';
-import { BuildOptions, BundlerContext } from './types';
-import { asLiteral, asIdentifier, iife } from 'src/common/code';
-import { preludePlugin } from './plugins/prelude-plugin';
-import { persistCachePlugin } from './plugins/persist-cache-plugin';
-import { codegenPlugin } from './plugins/codegen-plugin';
-import { stripFlowSyntaxPlugin } from './plugins/strip-flow-syntax-plugin';
-import { assetRegistryPlugin } from './plugins/asset-registry-plugin';
-import { stripFlowSyntax } from 'src/common/flow';
 import fs from 'node:fs';
+
 import { isNotNil } from 'es-toolkit';
-import { GLOBAL_IDENTIFIER } from 'src/constants';
+import type * as rolldown from 'rolldown';
+
+import { asLiteral, asIdentifier, iife } from '../common/code';
+import { stripFlowSyntax } from '../common/flow';
+import { ResolvedConfig } from '../config';
+import { GLOBAL_IDENTIFIER } from '../constants';
+import { assetRegistryPlugin } from './plugins/asset-registry-plugin';
+import { codegenPlugin } from './plugins/codegen-plugin';
+import { persistCachePlugin } from './plugins/persist-cache-plugin';
+import { preludePlugin } from './plugins/prelude-plugin';
+import { stripFlowSyntaxPlugin } from './plugins/strip-flow-syntax-plugin';
+import { BuildOptions, BundlerContext } from './types';
 
 export interface RolldownOptions {
   input?: rolldown.InputOptions;

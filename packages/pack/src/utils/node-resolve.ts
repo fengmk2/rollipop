@@ -1,5 +1,5 @@
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
 
 export function resolvePackagePath(basePath: string, packageName: string) {
   let packagePath: string | null = null;

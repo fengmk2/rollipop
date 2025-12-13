@@ -1,5 +1,5 @@
-import path from 'node:path';
 import fs from 'node:fs';
+import path from 'node:path';
 
 export function getSharedDataPath(basePath: string) {
   return path.join(basePath, '.rollipop');
