@@ -1,7 +1,6 @@
 import path from 'node:path';
 import * as rolldown from 'rolldown';
 import { invariant } from 'es-toolkit';
-import { resolveRolldownOptions } from 'src/config/resolve-rolldown-options';
 import type { ResolvedConfig } from 'src/config/defaults';
 import type { BuildOptions } from './types';
 import { toBundleFileName } from 'src/utils/to-bundle-file-name';
@@ -10,6 +9,7 @@ import { ensureSharedDataPath } from 'src/common/shared-data';
 import { FileSystemCache } from './cache/file-system-cache';
 import { md5 } from 'src/utils/hash';
 import { serialize } from 'src/utils/serialize';
+import { resolveRolldownOptions } from './rolldown';
 
 export class Bundler {
   private initialized = false;

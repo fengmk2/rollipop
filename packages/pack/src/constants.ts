@@ -1,0 +1,1 @@
+export const GLOBAL_IDENTIFIER = '__ROLLIPOP_GLOBAL';

@@ -1,6 +1,6 @@
 import * as rolldown from 'rolldown';
 import type { CodegenConfig } from 'src/config/types';
-import { stripFlowSyntax } from 'src/transformer/flow';
+import { stripFlowSyntax } from 'src/common/flow';
 
 export interface StripFlowSyntaxPluginOptions {
   filter: CodegenConfig['filter'];

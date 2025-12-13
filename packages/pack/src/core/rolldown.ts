@@ -1,14 +1,21 @@
-import fs from 'node:fs';
 import type * as rolldown from 'rolldown';
-import { stripFlowSyntax } from 'src/transformer/flow';
-import type { ResolvedConfig } from './defaults';
+import { ResolvedConfig } from 'src/config';
+import { BuildOptions, BundlerContext } from './types';
+import { asLiteral, asIdentifier, iife } from 'src/common/code';
+import { preludePlugin } from './plugins/prelude-plugin';
+import { persistCachePlugin } from './plugins/persist-cache-plugin';
+import { codegenPlugin } from './plugins/codegen-plugin';
+import { stripFlowSyntaxPlugin } from './plugins/strip-flow-syntax-plugin';
+import { assetRegistryPlugin } from './plugins/asset-registry-plugin';
+import { stripFlowSyntax } from 'src/common/flow';
+import fs from 'node:fs';
 import { isNotNil } from 'es-toolkit';
-import { preludePlugin } from 'src/core/plugins/prelude-plugin';
-import { codegenPlugin } from 'src/core/plugins/codegen-plugin';
-import { stripFlowSyntaxPlugin } from 'src/core/plugins/strip-flow-syntax-plugin';
-import { assetRegistryPlugin } from 'src/core/plugins/asset-registry-plugin';
-import { persistCachePlugin } from 'src/core/plugins/persist-cache-plugin';
-import type { BuildOptions, BundlerContext } from 'src/core/types';
+import { GLOBAL_IDENTIFIER } from 'src/constants';
+
+export interface RolldownOptions {
+  input?: rolldown.InputOptions;
+  output?: rolldown.OutputOptions;
+}
 
 export async function resolveRolldownOptions(
   config: ResolvedConfig,
@@ -32,31 +39,31 @@ export async function resolveRolldownOptions(
     cwd: config.root,
     input: config.entry,
     platform: 'neutral',
-    treeshake: false,
+    treeshake: true,
     resolve: {
       extensions: resolveExtensions,
       mainFields: config.resolver.mainFields,
       conditionNames: config.resolver.conditionNames,
     },
     transform: {
+      target: 'es2015',
+      define: {
+        __DEV__: asLiteral(dev),
+        'process.env.NODE_ENV': asLiteral(nodeEnvironment),
+        global: asIdentifier(GLOBAL_IDENTIFIER),
+      },
       typescript: {
         removeClassFieldsWithoutInitializer: true,
-      },
-      assumptions: {
-        setPublicClassFields: true,
       },
       jsx: {
         development: dev,
         runtime: 'automatic',
       },
+      assumptions: {
+        setPublicClassFields: true,
+      },
       helpers: {
         mode: 'Runtime',
-      },
-      target: 'es2015',
-      define: {
-        __DEV__: asLiteral(dev),
-        'process.env.NODE_ENV': asLiteral(nodeEnvironment),
-        global: '__ROLLIPOP_GLOBAL',
       },
     },
     plugins: [
@@ -77,16 +84,10 @@ export async function resolveRolldownOptions(
       eval: false,
       pluginTimings: false,
     },
-    experimental: {
-      strictExecutionOrder: true,
-      disableLiveBindings: true,
-    },
   };
 
-  const polyfillContents = (config.serializer?.polyfills ?? [])
-    .map((polyfillPath) =>
-      wrapWithIIFE(stripFlowSyntax(fs.readFileSync(polyfillPath, 'utf-8')), polyfillPath),
-    )
+  const polyfillContents = loadPolyfills(config.serializer?.polyfills ?? [])
+    .map(({ path, content }) => iife(stripFlowSyntax(content), path))
     .join('\n');
 
   const outputOptions: rolldown.OutputOptions = {
@@ -94,7 +95,7 @@ export async function resolveRolldownOptions(
       `var __BUNDLE_START_TIME__=globalThis.nativePerformanceNow?nativePerformanceNow():Date.now();`,
       `var __DEV__=${dev};`,
       `var process=globalThis.process||{};process.env=process.env||{};process.env.NODE_ENV=process.env.NODE_ENV||"${nodeEnvironment}";`,
-      `var __ROLLIPOP_GLOBAL=typeof globalThis !== 'undefined' ? globalThis : typeof global !== 'undefined' ? global : typeof window !== 'undefined' ? window : this;`,
+      `var ${GLOBAL_IDENTIFIER}=typeof globalThis!=='undefined'?globalThis:typeof global !== 'undefined'?global:typeof window!=='undefined'?window:this;`,
       polyfillContents,
     ].join('\n'),
     format: 'iife',
@@ -102,6 +103,23 @@ export async function resolveRolldownOptions(
     keepNames: true,
   };
 
+  const finalOptions = await applyFinalizer(config, inputOptions, outputOptions);
+
+  return finalOptions;
+}
+
+function loadPolyfills(polyfills: string[]) {
+  return polyfills.map((polyfillPath) => ({
+    path: polyfillPath,
+    content: fs.readFileSync(polyfillPath, 'utf-8'),
+  }));
+}
+
+async function applyFinalizer(
+  config: ResolvedConfig,
+  inputOptions: rolldown.InputOptions,
+  outputOptions: rolldown.OutputOptions,
+) {
   if (typeof config.INTERNAL__rolldown === 'function') {
     const resolvedOptions = await config.INTERNAL__rolldown({
       input: inputOptions,
@@ -114,21 +132,4 @@ export async function resolveRolldownOptions(
     input: config.INTERNAL__rolldown?.input ?? inputOptions,
     output: config.INTERNAL__rolldown?.output ?? outputOptions,
   };
-}
-
-function wrapWithIIFE(body: string, filepath: string) {
-  return `
-  // ${filepath}
-  (function (global) {
-  ${indent(body, 1)}
-  })(__ROLLIPOP_GLOBAL);
-  `;
-}
-
-function indent(text: string, indent: number) {
-  return text.replace(/^/gm, '\t'.repeat(indent));
-}
-
-function asLiteral(value: unknown) {
-  return JSON.stringify(value);
 }
