@@ -45,10 +45,7 @@ export class Bundler {
     const rolldownOptions = await resolveRolldownOptions(config, context, buildOptions);
     const rolldownBuildOptions: rolldown.BuildOptions = {
       ...rolldownOptions.input,
-      output: {
-        ...rolldownOptions.output,
-        file: buildOptions.outfile,
-      },
+      output: rolldownOptions.output,
       write: true,
     };
 

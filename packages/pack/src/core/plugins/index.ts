@@ -8,3 +8,7 @@ export {
   stripFlowSyntaxPlugin as stripFlowSyntax,
   type StripFlowSyntaxPluginOptions,
 } from './strip-flow-syntax-plugin';
+export {
+  persistCachePlugin as persistCache,
+  type PersistCachePluginOptions,
+} from './persist-cache-plugin';

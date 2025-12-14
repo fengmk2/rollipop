@@ -1,17 +1,21 @@
 import fs from 'node:fs';
 
+import { logger } from '@rollipop/common';
 import { isNotNil } from 'es-toolkit';
 import type * as rolldown from 'rolldown';
 
+import { isDebugEnabled } from '../../../common/src/debug';
 import { asLiteral, asIdentifier, iife } from '../common/code';
-import { stripFlowSyntax } from '../common/flow';
+import { stripFlowSyntax as stripFlowSyntaxTransformer } from '../common/flow';
 import { ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
-import { assetRegistryPlugin } from './plugins/asset-registry-plugin';
-import { codegenPlugin } from './plugins/codegen-plugin';
-import { persistCachePlugin } from './plugins/persist-cache-plugin';
-import { preludePlugin } from './plugins/prelude-plugin';
-import { stripFlowSyntaxPlugin } from './plugins/strip-flow-syntax-plugin';
+import {
+  prelude,
+  reactNativeCodegen,
+  stripFlowSyntax,
+  reactNativeAssetRegistry,
+  persistCache,
+} from './plugins';
 import { BuildOptions, BundlerContext } from './types';
 
 export interface RolldownOptions {
@@ -69,11 +73,11 @@ export async function resolveRolldownOptions(
       },
     },
     plugins: [
-      preludePlugin({ modulePaths: serializer.prelude }),
-      persistCachePlugin({ enabled: cache, sourceExtensions: resolver.sourceExtensions }, context),
-      persistCachePlugin.enhance(codegenPlugin(reactNative.codegen)),
-      persistCachePlugin.enhance(stripFlowSyntaxPlugin(transformer.flow)),
-      assetRegistryPlugin({
+      prelude({ modulePaths: serializer.prelude }),
+      persistCache({ enabled: cache, sourceExtensions: resolver.sourceExtensions }, context),
+      persistCache.enhance(reactNativeCodegen(reactNative.codegen)),
+      persistCache.enhance(stripFlowSyntax(transformer.flow)),
+      reactNativeAssetRegistry({
         assetExtensions: resolver.assetExtensions,
         assetRegistryPath: reactNative.assetRegistryPath,
       }),
@@ -86,10 +90,11 @@ export async function resolveRolldownOptions(
       eval: false,
       pluginTimings: false,
     },
+    logLevel: isDebugEnabled() ? 'debug' : 'info',
   };
 
   const polyfillContents = loadPolyfills(config.serializer?.polyfills ?? [])
-    .map(({ path, content }) => iife(stripFlowSyntax(content), path))
+    .map(({ path, content }) => iife(stripFlowSyntaxTransformer(content), path))
     .join('\n');
 
   const outputOptions: rolldown.OutputOptions = {
@@ -100,12 +105,16 @@ export async function resolveRolldownOptions(
       `var ${GLOBAL_IDENTIFIER}=typeof globalThis!=='undefined'?globalThis:typeof global !== 'undefined'?global:typeof window!=='undefined'?window:this;`,
       polyfillContents,
     ].join('\n'),
+    file: buildOptions.outfile,
     minify,
     format: 'iife',
     keepNames: true,
   };
 
   const finalOptions = await applyFinalizer(config, inputOptions, outputOptions);
+
+  logger.debug('Resolved rolldown options (input)', finalOptions.input);
+  logger.debug('Resolved rolldown options (output)', finalOptions.output);
 
   return finalOptions;
 }

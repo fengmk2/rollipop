@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { logger } from '@rollipop/common';
+
 import type { Cache } from './cache';
 
 type Key = string;
@@ -8,6 +10,7 @@ type Key = string;
 export class FileSystemCache implements Cache<Key, string> {
   constructor(private readonly cacheDirectory: string) {
     this.ensureCacheDirectory();
+    logger.debug('cache directory:', cacheDirectory);
   }
 
   private ensureCacheDirectory() {
@@ -28,7 +31,7 @@ export class FileSystemCache implements Cache<Key, string> {
     try {
       fs.writeFileSync(path.join(this.cacheDirectory, key), value);
     } catch {
-      throw new Error('Failed to write cache file');
+      logger.error('Failed to write cache file', key);
     }
   }
 

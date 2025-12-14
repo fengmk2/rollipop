@@ -32,14 +32,17 @@
   "scripts": {
     "prepare": "yarn build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest --run",
     "build": "tsdown"
   },
   "devDependencies": {
     "tsdown": "^0.17.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   },
   "dependencies": {
     "chalk": "^5.6.2",
+    "dayjs": "^1.11.19",
     "gradient-string": "^3.0.0"
   }
 }
