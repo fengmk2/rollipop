@@ -7,6 +7,7 @@ import type * as rolldown from 'rolldown';
 import { isDebugEnabled } from '../../../common/src/debug';
 import { asLiteral, asIdentifier, iife } from '../common/code';
 import { stripFlowSyntax as stripFlowSyntaxTransformer } from '../common/flow';
+import { ProgressBarRenderer } from '../common/progress-bar';
 import { ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
 import {
@@ -15,6 +16,7 @@ import {
   stripFlowSyntax,
   reactNativeAssetRegistry,
   persistCache,
+  status,
 } from './plugins';
 import { BuildOptions, BundlerContext } from './types';
 
@@ -28,8 +30,11 @@ export async function resolveRolldownOptions(
   context: BundlerContext,
   buildOptions: BuildOptions,
 ) {
+  const data = context.storage.get();
   const { resolver, transformer, serializer, reactNative } = config;
   const { platform, dev, cache = true, minify = false } = buildOptions;
+
+  const nodeEnvironment = dev ? 'development' : 'production';
   const supportedExtensions = [...resolver.sourceExtensions, ...resolver.assetExtensions];
   const platforms = [platform, resolver.preferNativePlatform ? 'native' : null].filter(isNotNil);
   const resolveExtensions = [
@@ -39,7 +44,12 @@ export async function resolveRolldownOptions(
     ...supportedExtensions.map((extension) => `.${extension}`),
   ].flat();
 
-  const nodeEnvironment = dev ? 'development' : 'production';
+  let totalModules = data.build[context.buildHash]?.totalModules ?? 0;
+  const progressBarRenderer = ProgressBarRenderer.getInstance();
+  const progressBar = progressBarRenderer.register(context.buildHash, {
+    label: platform,
+    total: totalModules,
+  });
 
   const inputOptions: rolldown.InputOptions = {
     cwd: config.root,
@@ -80,6 +90,32 @@ export async function resolveRolldownOptions(
       reactNativeAssetRegistry({
         assetExtensions: resolver.assetExtensions,
         assetRegistryPath: reactNative.assetRegistryPath,
+      }),
+      status({
+        onStart() {
+          progressBar.start();
+          progressBarRenderer.start();
+        },
+        onEnd(result) {
+          progressBar.update(result).end();
+          progressBarRenderer.release();
+          context.storage.set({
+            ...data,
+            build: { ...data.build, [context.buildHash]: { totalModules } },
+          });
+        },
+        onResolve(id) {
+          progressBar.update({ id });
+          progressBarRenderer.render();
+        },
+        onTransform(transformedModules) {
+          if (totalModules < transformedModules) {
+            totalModules = transformedModules;
+            progressBar.setTotal(totalModules);
+          }
+          progressBar.setCurrent(transformedModules);
+          progressBarRenderer.render();
+        },
       }),
       ...(config.plugins ?? []),
     ],

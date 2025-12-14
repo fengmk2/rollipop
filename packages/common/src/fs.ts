@@ -16,3 +16,11 @@ export function ensureSharedDataPath(basePath: string) {
 
   return sharedDataPath;
 }
+
+export function getCachePath(basePath: string) {
+  return path.join(getSharedDataPath(basePath), 'cache');
+}
+
+export function resetCache(basePath: string) {
+  fs.rmSync(getCachePath(basePath), { recursive: true, force: true });
+}

@@ -1,6 +1,4 @@
-import path from 'node:path';
-
-import { Logo, ensureSharedDataPath } from '@rollipop/common';
+import { Logo, getCachePath, Storage } from '@rollipop/common';
 import { invariant, pick } from 'es-toolkit';
 import * as rolldown from 'rolldown';
 
@@ -12,9 +10,8 @@ import { resolveRolldownOptions } from './rolldown';
 import type { BuildOptions } from './types';
 
 export class Bundler {
-  private readonly sharedDataPath: string;
-  private readonly cachePath: string;
   private readonly cache: FileSystemCache;
+  private readonly storage: Storage;
 
   static getId(config: ResolvedConfig, buildOptions: BuildOptions) {
     return md5(
@@ -27,23 +24,15 @@ export class Bundler {
 
   constructor(private readonly config: ResolvedConfig) {
     Logo.printLogoOnce();
-    this.sharedDataPath = ensureSharedDataPath(this.config.root);
-    this.cachePath = path.join(this.sharedDataPath, 'cache');
-    this.cache = new FileSystemCache(this.cachePath);
-  }
-
-  private extractBundleRelevantOptions(config: ResolvedConfig, buildOptions: BuildOptions) {
-    return {
-      config: pick(config, ['resolver', 'transformer', 'serializer', 'plugins']),
-      buildOptions: pick(buildOptions, ['platform', 'dev']),
-    };
+    this.cache = new FileSystemCache(getCachePath(this.config.root));
+    this.storage = Storage.getInstance(this.config.root);
   }
 
   async build(buildOptions: BuildOptions) {
-    const { config, cache } = this;
+    const { config, cache, storage } = this;
 
     const buildHash = Bundler.getId(config, buildOptions);
-    const context = { buildHash, cache };
+    const context = { buildHash, cache, storage };
     const rolldownOptions = await resolveRolldownOptions(config, context, buildOptions);
     const rolldownBuildOptions: rolldown.BuildOptions = {
       ...rolldownOptions.input,
@@ -56,9 +45,5 @@ export class Bundler {
     invariant(chunk, 'Bundled chunk is not found');
 
     return chunk;
-  }
-
-  resetCache() {
-    this.cache.clear();
   }
 }

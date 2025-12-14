@@ -1,4 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
+import { logger, resetCache } from '@rollipop/common';
 import { DEFAULT_HOST, DEFAULT_PORT, runServer } from '@rollipop/dev-server';
 import { loadConfig } from '@rollipop/pack';
 
@@ -35,6 +36,11 @@ export const command = new Command('start')
       cwd,
       configFile: options.config,
     });
+
+    if (options.resetCache) {
+      resetCache(cwd);
+      logger.info('The transform cache was reset');
+    }
 
     await runServer(config, {
       projectRoot: cwd,

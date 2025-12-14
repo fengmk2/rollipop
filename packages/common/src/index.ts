@@ -5,5 +5,6 @@ export * from './logger';
 export * from './constants';
 export * from './fs';
 export * from './debug';
+export * from './storage';
 
 export { chalk };

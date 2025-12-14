@@ -41,6 +41,7 @@ export async function runServer(config: ResolvedConfig, options: ServerOptions) 
   fastify
     .register(securityHeaders, { host })
     .register(import('@fastify/compress'))
+    .register(import('@fastify/websocket'))
     .register(noCache)
     .register(openUrl)
     .register(openStackFrame)

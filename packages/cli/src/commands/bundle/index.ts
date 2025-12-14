@@ -1,4 +1,5 @@
 import { Command } from '@commander-js/extra-typings';
+import { logger, resetCache } from '@rollipop/common';
 import { Bundler, loadConfig } from '@rollipop/pack';
 
 import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
@@ -49,15 +50,18 @@ export const command = new Command('build')
   .option('--read-global-cache', UNSUPPORTED_OPTION_DESCRIPTION)
   .option('--resolver-option <string...>', UNSUPPORTED_OPTION_DESCRIPTION)
   .action(async (options) => {
+    const cwd = process.cwd();
     const config = await loadConfig({
-      cwd: process.cwd(),
+      cwd,
       configFile: options.config,
     });
-    const bundler = new Bundler(config);
 
     if (options.resetCache) {
-      bundler.resetCache();
+      resetCache(cwd);
+      logger.info('The transform cache was reset');
     }
+
+    const bundler = new Bundler(config);
 
     if (options.entryFile) {
       config.entry = options.entryFile;

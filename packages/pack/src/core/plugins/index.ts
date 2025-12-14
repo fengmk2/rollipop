@@ -12,3 +12,4 @@ export {
   persistCachePlugin as persistCache,
   type PersistCachePluginOptions,
 } from './persist-cache-plugin';
+export { statusPlugin as status, type StatusPluginOptions } from './status-plugin';
