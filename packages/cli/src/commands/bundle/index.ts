@@ -43,12 +43,7 @@ export const command = new Command('build')
   // Unsupported options
   .option('--transformer <string>', UNSUPPORTED_OPTION_DESCRIPTION)
   .option('--bundle-encoding <string>', UNSUPPORTED_OPTION_DESCRIPTION, 'utf8')
-  .option(
-    '--max-workers <number>',
-    UNSUPPORTED_OPTION_DESCRIPTION,
-    (value) => parseInt(value, 10),
-    0,
-  )
+  .option('--max-workers <number>', UNSUPPORTED_OPTION_DESCRIPTION, Number, 0)
   .option('--unstable-transform-profile <string>', UNSUPPORTED_OPTION_DESCRIPTION, 'default')
   .option('--asset-catalog-dest [string]', UNSUPPORTED_OPTION_DESCRIPTION)
   .option('--read-global-cache', UNSUPPORTED_OPTION_DESCRIPTION)

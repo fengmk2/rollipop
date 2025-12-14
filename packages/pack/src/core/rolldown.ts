@@ -109,6 +109,7 @@ export async function resolveRolldownOptions(
     minify,
     format: 'iife',
     keepNames: true,
+    sourcemap: true,
   };
 
   const finalOptions = await applyFinalizer(config, inputOptions, outputOptions);

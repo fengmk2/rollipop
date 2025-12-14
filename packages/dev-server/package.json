@@ -1,5 +1,5 @@
 {
-  "name": "@rollipop/cli",
+  "name": "@rollipop/dev-server",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -21,7 +21,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/leegeunhyeok/rollipop.git",
-    "directory": "packages/cli"
+    "directory": "packages/dev-server"
   },
   "author": "leegeunhyeok <dev.ghlee@gmail.com> (https://github.com/leegeunhyeok)",
   "license": "MIT",
@@ -32,17 +32,26 @@
   "scripts": {
     "prepare": "yarn build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest --run",
     "build": "tsdown"
   },
   "devDependencies": {
+    "@types/ws": "^8",
     "tsdown": "^0.17.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
   },
   "dependencies": {
-    "@commander-js/extra-typings": "^14.0.0",
+    "@fastify/compress": "^8.3.0",
+    "@fastify/websocket": "^11.2.0",
     "@rollipop/common": "workspace:*",
-    "@rollipop/dev-server": "workspace:*",
-    "@rollipop/pack": "workspace:*",
-    "commander": "^14.0.2"
+    "@rollipop/pack": "workspace:^",
+    "fastify": "^5.6.2",
+    "fastify-plugin": "^5.1.0",
+    "json-schema-to-ts": "^3.1.1",
+    "mime": "^4.1.0",
+    "open": "^11.0.0",
+    "raw-body": "^3.0.2",
+    "ws": "^8.18.3"
   }
 }

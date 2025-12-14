@@ -3,6 +3,7 @@ import { Logo } from '@rollipop/common';
 
 import { version } from '../package.json' with { type: 'json' };
 import { command as bundleCommand } from './commands/bundle';
+import { command as startCommand } from './commands/start';
 
 export function run(argv: string[]) {
   Logo.printLogoOnce();
@@ -10,6 +11,7 @@ export function run(argv: string[]) {
   const cli = program.name('rollipop').version(version);
 
   cli.addCommand(bundleCommand);
+  cli.addCommand(startCommand);
 
   cli.parse(argv);
 }

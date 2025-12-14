@@ -1,6 +1,6 @@
 import { defineConfig } from '@rollipop/pack';
 
-export default defineConfig((context) => {
+export default defineConfig((_context) => {
   // console.log('context', JSON.stringify(context, null, 2));
 
   let t0 = 0;

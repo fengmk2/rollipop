@@ -1,10 +1,9 @@
 import path from 'node:path';
 
-import { Logo } from '@rollipop/common';
+import { Logo, ensureSharedDataPath } from '@rollipop/common';
 import { invariant, pick } from 'es-toolkit';
 import * as rolldown from 'rolldown';
 
-import { ensureSharedDataPath } from '../common/shared-data';
 import type { ResolvedConfig } from '../config/defaults';
 import { md5 } from '../utils/hash';
 import { serialize } from '../utils/serialize';
@@ -13,15 +12,18 @@ import { resolveRolldownOptions } from './rolldown';
 import type { BuildOptions } from './types';
 
 export class Bundler {
-  private static logoPrinted = false;
   private readonly sharedDataPath: string;
   private readonly cachePath: string;
   private readonly cache: FileSystemCache;
 
-  /**
-   * @TODO
-   */
-  static createServer(bundler: Bundler) {}
+  static getId(config: ResolvedConfig, buildOptions: BuildOptions) {
+    return md5(
+      serialize({
+        config: pick(config, ['resolver', 'transformer', 'serializer', 'plugins']),
+        buildOptions: pick(buildOptions, ['platform', 'dev']),
+      }),
+    );
+  }
 
   constructor(private readonly config: ResolvedConfig) {
     Logo.printLogoOnce();
@@ -40,7 +42,7 @@ export class Bundler {
   async build(buildOptions: BuildOptions) {
     const { config, cache } = this;
 
-    const buildHash = md5(serialize(this.extractBundleRelevantOptions(config, buildOptions)));
+    const buildHash = Bundler.getId(config, buildOptions);
     const context = { buildHash, cache };
     const rolldownOptions = await resolveRolldownOptions(config, context, buildOptions);
     const rolldownBuildOptions: rolldown.BuildOptions = {

@@ -4,7 +4,9 @@
  * @see https://github.com/facebook/metro/blob/0.81.x/packages/metro/src/Assets.js
  */
 
-import path from 'path';
+import path from 'node:path';
+
+import { DEV_SERVER_ASSET_PATH } from '@rollipop/common';
 
 export interface AssetInfo {
   files: string[];
@@ -60,10 +62,8 @@ export function getAssetData(assetPath: string): AssetData {
     ...getAssetInfo(assetPath),
     __packager_asset: true,
     fileSystemLocation: path.dirname(assetPath),
-    httpServerLocation: path.join(ASSET_PUBLIC_PATH, dirname),
+    httpServerLocation: path.join(DEV_SERVER_ASSET_PATH, dirname),
     width: 0,
     height: 0,
   };
 }
-
-const ASSET_PUBLIC_PATH = 'assets';
