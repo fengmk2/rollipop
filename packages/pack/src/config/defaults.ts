@@ -1,104 +1,73 @@
-import * as rolldown from 'rolldown';
+import fs from 'node:fs';
 
+import { isNotNil } from 'es-toolkit';
+
+import { stripFlowSyntax } from '../common/transformer';
+import {
+  DEFAULT_ASSET_EXTENSIONS,
+  DEFAULT_ASSET_REGISTRY_PATH,
+  DEFAULT_RESOLVER_CONDITION_NAMES,
+  DEFAULT_RESOLVER_MAIN_FIELDS,
+  DEFAULT_SOURCE_EXTENSIONS,
+} from '../constants';
 import { getInitializeCorePath, getPolyfillScriptPaths } from '../internal/react-native';
 import { resolvePackagePath } from '../utils/node-resolve';
-import type { Config } from './types';
+import { DefineConfigContext } from './define-config';
+import type { Config, Polyfill } from './types';
 
-/**
- * Unlike the Metro bundler configuration, this prioritizes resolving module(ESM) fields first.
- *
- * @see {@link https://github.com/facebook/metro/blob/0.81.x/docs/Configuration.md#resolvermainfields}
- */
-export const RESOLVER_MAIN_FIELDS = ['react-native', 'module', 'main'];
-export const RESOLVER_CONDITION_NAMES = ['react-native', 'import', 'require'];
-
-/**
- * Unlike the Metro bundler configuration, this prioritizes resolving TypeScript and ESM first.
- *
- * @see {@link https://github.com/facebook/metro/blob/0.81.x/packages/metro-config/src/defaults/defaults.js}
- * @see {@link https://github.com/facebook/metro/blob/0.81.x/packages/metro-file-map/src/workerExclusionList.js}
- */
-export const SOURCE_EXTENSIONS = [
-  'ts',
-  'tsx',
-  'js',
-  'jsx',
-  // Additional module formats
-  'mjs',
-  'cjs',
-  // JSON files
-  'json',
-];
-
-export const ASSET_EXTENSIONS = [
-  // Image formats
-  'bmp',
-  'gif',
-  'jpg',
-  'jpeg',
-  'png',
-  'psd',
-  'svg',
-  'webp',
-  'xml',
-  // Video formats
-  'm4v',
-  'mov',
-  'mp4',
-  'mpeg',
-  'mpg',
-  'webm',
-  // Audio formats
-  'aac',
-  'aiff',
-  'caf',
-  'm4a',
-  'mp3',
-  'wav',
-  // Document formats
-  'html',
-  'pdf',
-  'yaml',
-  'yml',
-  // Font formats
-  'otf',
-  'ttf',
-  // Archives (virtual files)
-  'zip',
-];
-
-export function getDefaultConfig(basePath: string) {
+export function getDefaultConfig(
+  basePath: string,
+  context: Omit<DefineConfigContext, 'defaultConfig'>,
+) {
   const reactNativePath = resolvePackagePath(basePath, 'react-native');
+  const isDevServer = context.command === 'start';
 
   const defaultConfig = {
     root: basePath,
     entry: 'index.js',
     resolver: {
-      sourceExtensions: SOURCE_EXTENSIONS,
-      assetExtensions: ASSET_EXTENSIONS,
-      mainFields: RESOLVER_MAIN_FIELDS,
-      conditionNames: RESOLVER_CONDITION_NAMES,
-      preferNativePlatform: true as boolean,
+      sourceExtensions: DEFAULT_SOURCE_EXTENSIONS,
+      assetExtensions: DEFAULT_ASSET_EXTENSIONS,
+      mainFields: DEFAULT_RESOLVER_MAIN_FIELDS,
+      conditionNames: DEFAULT_RESOLVER_CONDITION_NAMES,
+      preferNativePlatform: true,
     },
     transformer: {
       flow: {
         filter: {
           id: /\.jsx?$/,
           code: /@flow/,
-        } as rolldown.HookFilter,
+        },
       },
     },
     serializer: {
       prelude: [getInitializeCorePath(basePath)],
-      polyfills: [...getPolyfillScriptPaths(reactNativePath)],
+      polyfills: [
+        ...getPolyfillScriptPaths(reactNativePath).map(
+          (path) =>
+            ({
+              type: 'iife',
+              code: stripFlowSyntax(fs.readFileSync(path, 'utf-8')),
+            }) satisfies Polyfill,
+        ),
+        isDevServer ? require.resolve('@rollipop/pack/hmr-shims') : undefined,
+      ].filter(isNotNil),
+    },
+    watcher: {
+      skipWrite: true,
+      useDebounce: true,
+      debounceDuration: 50,
     },
     reactNative: {
-      assetRegistryPath: 'react-native/Libraries/Image/AssetRegistry.js',
       codegen: {
         filter: {
           code: /codegenNativeComponent/,
-        } as rolldown.HookFilter,
+        },
       },
+      assetRegistryPath: DEFAULT_ASSET_REGISTRY_PATH,
+    },
+    terminal: {
+      status: process.stderr.isTTY ? 'progress' : 'compat',
     },
   } satisfies Config;
 

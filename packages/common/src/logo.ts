@@ -59,14 +59,14 @@ function printLogo() {
   console.log(''); // empty line
 }
 
+let _printed = false;
 export const Logo = {
-  _printed: false,
-  printLogo,
-  printLogoOnce: () => {
-    if (Logo._printed) {
+  print: printLogo,
+  printOnce: () => {
+    if (_printed) {
       return;
     }
-    Logo._printed = true;
+    _printed = true;
     printLogo();
   },
 };

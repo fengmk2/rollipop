@@ -16,6 +16,9 @@
         "default": "./dist/index.cjs"
       }
     },
+    "./hmr-shims": "./dist/hmr-shims.js",
+    "./hmr-runtime": "./dist/hmr-runtime.js",
+    "./hmr-client": "./dist/hmr-client.cjs",
     "./package.json": "./package.json"
   },
   "files": [
@@ -44,6 +47,7 @@
     "@babel/plugin-transform-flow-strip-types": "^7.27.1",
     "@node-rs/xxhash": "^1.7.6",
     "@react-native/babel-plugin-codegen": "^0.83.0",
+    "@rolldown/pluginutils": "1.0.0-beta.54",
     "@rollipop/common": "workspace:*",
     "@swc/core": "^1.15.3",
     "babel-plugin-syntax-hermes-parser": "^0.32.1",
@@ -52,13 +56,16 @@
     "es-toolkit": "^1.42.0",
     "flow-remove-types": "^2.293.0",
     "hermes-parser": "^0.32.1",
-    "rolldown": "1.0.0-beta.54",
+    "rolldown": "1.0.0-beta.55",
     "wrap-ansi": "^9.0.2"
   },
   "devDependencies": {
     "@types/babel__core": "^7",
     "@types/babel__generator": "^7",
-    "tsdown": "^0.17.2",
+    "@types/react-refresh": "^0",
+    "@types/ws": "^8",
+    "react-refresh": "^0.18.0",
+    "tsdown": "^0.18.1",
     "typescript": "^5.9.3"
   }
 }

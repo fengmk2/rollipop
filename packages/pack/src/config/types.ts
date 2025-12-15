@@ -1,4 +1,5 @@
 import type * as rolldown from 'rolldown';
+import type { DevWatchOptions, TransformOptions } from 'rolldown/experimental';
 
 export interface Config {
   root?: string;
@@ -6,25 +7,25 @@ export interface Config {
   resolver?: ResolverConfig;
   transformer?: TransformerConfig;
   serializer?: SerializerConfig;
+  watcher?: WatcherConfig;
   reactNative?: ReactNativeConfig;
+  terminal?: TerminalConfig;
   plugins?: rolldown.Plugin[];
-  INTERNAL__rolldown?:
+  rolldown?:
     | RolldownConfig
     | ((config: RolldownConfig) => RolldownConfig)
     | ((config: RolldownConfig) => Promise<RolldownConfig>);
 }
 
-export interface ResolverConfig {
+export type ResolverConfig = Omit<NonNullable<rolldown.InputOptions['resolve']>, 'extensions'> & {
   sourceExtensions?: string[];
   assetExtensions?: string[];
-  mainFields?: string[];
-  conditionNames?: string[];
   preferNativePlatform?: boolean;
-}
+};
 
-export interface TransformerConfig {
+export type TransformerConfig = Omit<TransformOptions, 'plugins'> & {
   flow?: FlowConfig;
-}
+};
 
 export interface FlowConfig {
   filter?: rolldown.HookFilter;
@@ -32,16 +33,27 @@ export interface FlowConfig {
 
 export interface SerializerConfig {
   prelude?: string[];
-  polyfills?: string[];
+  polyfills?: Polyfill[];
 }
 
+export type Polyfill = string | PolyfillWithCode | PolyfillWithPath;
+export type PolyfillWithCode = { type: PolyfillType; code: string };
+export type PolyfillWithPath = { type: PolyfillType; path: string };
+export type PolyfillType = 'plain' | 'iife';
+
+export type WatcherConfig = DevWatchOptions;
+
 export interface ReactNativeConfig {
-  assetRegistryPath?: string;
   codegen?: CodegenConfig;
+  assetRegistryPath?: string;
 }
 
 export interface CodegenConfig {
   filter?: rolldown.HookFilter;
+}
+
+export interface TerminalConfig {
+  status?: 'compat' | 'progress';
 }
 
 export interface RolldownConfig {

@@ -1,15 +1,6 @@
-export { codegenPlugin as reactNativeCodegen, type CodegenPluginOptions } from './codegen-plugin';
-export { preludePlugin as prelude, type PreludePluginOptions } from './prelude-plugin';
-export {
-  assetRegistryPlugin as reactNativeAssetRegistry,
-  type AssetRegistryPluginOptions,
-} from './asset-registry-plugin';
-export {
-  stripFlowSyntaxPlugin as stripFlowSyntax,
-  type StripFlowSyntaxPluginOptions,
-} from './strip-flow-syntax-plugin';
-export {
-  persistCachePlugin as persistCache,
-  type PersistCachePluginOptions,
-} from './persist-cache-plugin';
-export { statusPlugin as status, type StatusPluginOptions } from './status-plugin';
+export * from './react-native-plugin';
+export * from './react-refresh-plugin';
+export * from './prelude-plugin';
+export * from './persist-cache-plugin';
+export * from './status-plugin';
+export * from './json-plugin';

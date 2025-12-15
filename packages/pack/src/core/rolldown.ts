@@ -1,81 +1,80 @@
 import fs from 'node:fs';
 
-import { Logger, logger } from '@rollipop/common';
-import { isNotNil } from 'es-toolkit';
+import { Logger } from '@rollipop/common';
+import { isNotNil, merge } from 'es-toolkit';
 import type * as rolldown from 'rolldown';
+import type { TransformOptions } from 'rolldown/experimental';
 
 import { isDebugEnabled } from '../../../common/src/debug';
-import { asLiteral, asIdentifier, iife } from '../common/code';
-import { stripFlowSyntax as stripFlowSyntaxTransformer } from '../common/flow';
-import { ProgressBarRenderer } from '../common/progress-bar';
-import { ResolvedConfig } from '../config';
+import { DevServerOptions } from '../../../dev-server/src/instance-manager';
+import { asLiteral, asIdentifier, iife, nodeEnvironment } from '../common/code';
+import { statusPresets } from '../common/status-presets';
+import { Polyfill, ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
-import {
-  prelude,
-  reactNativeCodegen,
-  stripFlowSyntax,
-  reactNativeAssetRegistry,
-  persistCache,
-  status,
-} from './plugins';
+import { getGlobalVariables } from '../internal/react-native';
+import { prelude, persistCache, status, reactRefresh, reactNative, json } from './plugins';
 import { BuildOptions, BundlerContext } from './types';
 
 const rolldownLogger = new Logger('rolldown');
+
+export function resolveBuildOptions(buildOptions: BuildOptions) {
+  return merge(
+    {
+      dev: true,
+      cache: true,
+      minify: false,
+    },
+    buildOptions,
+  );
+}
 
 export interface RolldownOptions {
   input?: rolldown.InputOptions;
   output?: rolldown.OutputOptions;
 }
 
+resolveRolldownOptions.cache = new Map<string, RolldownOptions>();
+
 export async function resolveRolldownOptions(
-  config: ResolvedConfig,
   context: BundlerContext,
+  config: ResolvedConfig,
   buildOptions: BuildOptions,
-) {
-  const data = context.storage.get();
-  const { resolver, transformer, serializer, reactNative } = config;
-  const { platform, dev, cache = true, minify = false } = buildOptions;
+): Promise<RolldownOptions> {
+  const cachedOptions = resolveRolldownOptions.cache.get(context.id);
 
-  const nodeEnvironment = dev ? 'development' : 'production';
-  const supportedExtensions = [...resolver.sourceExtensions, ...resolver.assetExtensions];
-  const platforms = [platform, resolver.preferNativePlatform ? 'native' : null].filter(isNotNil);
-  const resolveExtensions = [
-    ...platforms.map((platform) => {
-      return supportedExtensions.map((extension) => `.${platform}.${extension}`);
-    }),
-    ...supportedExtensions.map((extension) => `.${extension}`),
-  ].flat();
+  if (cachedOptions != null) {
+    return cachedOptions;
+  }
 
-  let totalModules = data.build[context.buildHash]?.totalModules ?? 0;
-  const progressBarRenderer = ProgressBarRenderer.getInstance();
-  const progressBar = progressBarRenderer.register(context.buildHash, {
-    label: platform,
-    total: totalModules,
-  });
+  const { platform, dev, cache, minify } = resolveBuildOptions(buildOptions);
+  const { sourceExtensions, assetExtensions, preferNativePlatform, ...rolldownResolve } =
+    config.resolver;
+  const { prelude: preludePaths, polyfills } = config.serializer;
+  const { flow, ...rolldownTransform } = config.transformer;
+  const { codegen, assetRegistryPath } = config.reactNative;
 
-  const inputOptions: rolldown.InputOptions = {
-    cwd: config.root,
-    input: config.entry,
-    platform: 'neutral',
-    treeshake: true,
-    resolve: {
-      extensions: resolveExtensions,
-      mainFields: config.resolver.mainFields,
-      conditionNames: config.resolver.conditionNames,
-    },
-    transform: {
+  const mergedResolveOptions = merge(
+    {
+      extensions: getResolveExtensions({
+        sourceExtensions,
+        assetExtensions,
+        platform,
+        preferNativePlatform,
+      }),
+    } satisfies rolldown.InputOptions['resolve'],
+    rolldownResolve,
+  );
+
+  const mergedTransformOptions = merge(
+    {
       target: 'es2015',
       define: {
         __DEV__: asLiteral(dev),
-        'process.env.NODE_ENV': asLiteral(nodeEnvironment),
+        'process.env.NODE_ENV': asLiteral(nodeEnvironment(dev)),
         global: asIdentifier(GLOBAL_IDENTIFIER),
       },
       typescript: {
         removeClassFieldsWithoutInitializer: true,
-      },
-      jsx: {
-        development: dev,
-        runtime: 'automatic',
       },
       assumptions: {
         setPublicClassFields: true,
@@ -83,42 +82,38 @@ export async function resolveRolldownOptions(
       helpers: {
         mode: 'Runtime',
       },
-    },
+    } satisfies TransformOptions,
+    rolldownTransform,
+  );
+
+  const devServerPlugins = context.mode === 'serve' ? [reactRefresh()] : [];
+
+  const statusPreset =
+    config.terminal.status === 'progress'
+      ? statusPresets.progressBar(context, platform)
+      : statusPresets.compat();
+
+  const inputOptions: rolldown.InputOptions = {
+    cwd: config.root,
+    input: config.entry,
+    platform: 'neutral',
+    treeshake: true,
+    resolve: mergedResolveOptions,
+    transform: mergedTransformOptions,
     plugins: [
-      prelude({ modulePaths: serializer.prelude }),
-      persistCache({ enabled: cache, sourceExtensions: resolver.sourceExtensions }, context),
-      persistCache.enhance(reactNativeCodegen(reactNative.codegen)),
-      persistCache.enhance(stripFlowSyntax(transformer.flow)),
-      reactNativeAssetRegistry({
-        assetExtensions: resolver.assetExtensions,
-        assetRegistryPath: reactNative.assetRegistryPath,
+      prelude({ modulePaths: preludePaths }),
+      persistCache({ enabled: cache, sourceExtensions }, context),
+      reactNative({
+        root: config.root,
+        mode: context.mode,
+        codegenFilter: codegen.filter,
+        flowFilter: flow.filter,
+        assetExtensions,
+        assetRegistryPath,
       }),
-      status({
-        onStart() {
-          progressBar.start();
-          progressBarRenderer.start();
-        },
-        onEnd({ transformedModules, ...state }) {
-          progressBar.setTotal(transformedModules).update(state).end();
-          progressBarRenderer.release();
-          totalModules = transformedModules;
-          context.storage.set({
-            ...data,
-            build: {
-              ...data.build,
-              [context.buildHash]: { totalModules },
-            },
-          });
-        },
-        onTransform({ id, transformedModules }) {
-          if (totalModules < transformedModules) {
-            totalModules = transformedModules;
-            progressBar.setTotal(totalModules);
-          }
-          progressBar.setCurrent(transformedModules).update({ id });
-          progressBarRenderer.render();
-        },
-      }),
+      json(),
+      status(statusPreset),
+      ...(devServerPlugins ?? []),
       ...(config.plugins ?? []),
     ],
     checks: {
@@ -149,18 +144,9 @@ export async function resolveRolldownOptions(
     },
   };
 
-  const polyfillContents = loadPolyfills(config.serializer?.polyfills ?? [])
-    .map(({ path, content }) => iife(stripFlowSyntaxTransformer(content), path))
-    .join('\n');
-
   const outputOptions: rolldown.OutputOptions = {
-    intro: [
-      `var __BUNDLE_START_TIME__=globalThis.nativePerformanceNow?nativePerformanceNow():Date.now();`,
-      `var __DEV__=${dev};`,
-      `var process=globalThis.process||{};process.env=process.env||{};process.env.NODE_ENV=process.env.NODE_ENV||"${nodeEnvironment}";`,
-      `var ${GLOBAL_IDENTIFIER}=typeof globalThis!=='undefined'?globalThis:typeof global !== 'undefined'?global:typeof window!=='undefined'?window:this;`,
-      polyfillContents,
-    ].join('\n'),
+    banner: [...getGlobalVariables(dev, context.mode)].join('\n'),
+    intro: [...loadPolyfills(polyfills)].join('\n'),
     file: buildOptions.outfile,
     minify,
     format: 'iife',
@@ -170,17 +156,47 @@ export async function resolveRolldownOptions(
 
   const finalOptions = await applyFinalizer(config, inputOptions, outputOptions);
 
-  logger.debug('Resolved rolldown options (input)', finalOptions.input);
-  logger.debug('Resolved rolldown options (output)', finalOptions.output);
+  resolveRolldownOptions.cache.set(context.id, finalOptions);
 
   return finalOptions;
 }
 
-function loadPolyfills(polyfills: string[]) {
-  return polyfills.map((polyfillPath) => ({
-    path: polyfillPath,
-    content: fs.readFileSync(polyfillPath, 'utf-8'),
-  }));
+export interface GetResolveExtensionsOptions {
+  platform: string;
+  sourceExtensions: string[];
+  assetExtensions: string[];
+  preferNativePlatform: boolean;
+}
+
+export function getResolveExtensions({
+  platform,
+  sourceExtensions,
+  assetExtensions,
+  preferNativePlatform,
+}: GetResolveExtensionsOptions) {
+  const supportedExtensions = [...sourceExtensions, ...assetExtensions];
+  const platforms = [platform, preferNativePlatform ? 'native' : null].filter(isNotNil);
+  const resolveExtensions = [
+    ...platforms.map((platform) => {
+      return supportedExtensions.map((extension) => `.${platform}.${extension}`);
+    }),
+    ...supportedExtensions.map((extension) => `.${extension}`),
+  ].flat();
+
+  return resolveExtensions;
+}
+
+function loadPolyfills(polyfills: Polyfill[]) {
+  return polyfills.map((polyfill) => {
+    if (typeof polyfill === 'string') {
+      return fs.readFileSync(polyfill, 'utf-8');
+    }
+
+    const path = 'path' in polyfill ? polyfill.path : undefined;
+    const content = 'code' in polyfill ? polyfill.code : fs.readFileSync(polyfill.path, 'utf-8');
+
+    return polyfill.type === 'iife' ? iife(content, path) : content;
+  });
 }
 
 async function applyFinalizer(
@@ -188,8 +204,8 @@ async function applyFinalizer(
   inputOptions: rolldown.InputOptions,
   outputOptions: rolldown.OutputOptions,
 ) {
-  if (typeof config.INTERNAL__rolldown === 'function') {
-    const resolvedOptions = await config.INTERNAL__rolldown({
+  if (typeof config.rolldown === 'function') {
+    const resolvedOptions = await config.rolldown({
       input: inputOptions,
       output: outputOptions,
     });
@@ -197,7 +213,37 @@ async function applyFinalizer(
   }
 
   return {
-    input: config.INTERNAL__rolldown?.input ?? inputOptions,
-    output: config.INTERNAL__rolldown?.output ?? outputOptions,
+    input: merge(inputOptions, config.rolldown?.input ?? {}),
+    output: merge(outputOptions, config.rolldown?.output ?? {}),
   };
+}
+
+export function getOverrideOptionsForDevServer(devServerOptions: DevServerOptions) {
+  const hotRuntimeImplement = fs.readFileSync(
+    require.resolve('@rollipop/pack/hmr-runtime'),
+    'utf-8',
+  );
+
+  const input: rolldown.InputOptions = {
+    transform: {
+      jsx: {
+        development: true,
+      },
+    },
+    experimental: {
+      devMode: {
+        implement: hotRuntimeImplement,
+      },
+      incrementalBuild: true,
+      strictExecutionOrder: true,
+    },
+    treeshake: false,
+  };
+
+  const output: rolldown.OutputOptions = {
+    sourcemap: true,
+    sourcemapBaseUrl: `http://${devServerOptions.host}:${devServerOptions.port}`,
+  };
+
+  return { input, output };
 }

@@ -10,7 +10,7 @@ export interface PreludePluginOptions {
   modulePaths: string[];
 }
 
-export function preludePlugin(options: PreludePluginOptions): rolldown.Plugin {
+function preludePlugin(options: PreludePluginOptions): rolldown.Plugin {
   if (options.modulePaths.length === 0) {
     return shim();
   }
@@ -62,3 +62,5 @@ type PreludePluginMeta = rolldown.CustomPluginOptions & {
 function isEntry(meta: rolldown.CustomPluginOptions): meta is PreludePluginMeta {
   return IS_ENTRY in meta;
 }
+
+export { preludePlugin as prelude };

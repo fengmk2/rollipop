@@ -18,7 +18,7 @@ export interface StatusPluginEndResult {
   hasErrors: boolean;
 }
 
-export function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
+function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
   let startedAt = 0;
   let transformedModules = 0;
 
@@ -45,8 +45,11 @@ export function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
     transform: {
       order: 'post',
       handler(_code, id) {
-        options?.onTransform?.({ id, transformedModules: ++transformedModules });
+        ++transformedModules;
+        options?.onTransform?.({ id, transformedModules });
       },
     },
   };
 }
+
+export { statusPlugin as status };

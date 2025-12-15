@@ -2,6 +2,7 @@ import type { DefaultConfig } from './defaults';
 import type { Config } from './types';
 
 export interface DefineConfigContext {
+  command?: string;
   defaultConfig: DefaultConfig;
 }
 

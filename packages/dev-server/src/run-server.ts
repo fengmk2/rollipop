@@ -5,17 +5,17 @@ import { createDevMiddleware } from '@react-native/dev-middleware';
 import type { ResolvedConfig } from '@rollipop/pack';
 import Fastify from 'fastify';
 
-import { InstanceManager } from './bundler';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { errorHandler } from './error';
+import { InstanceManager } from './instance-manager';
 import { DevServerLogger, logger } from './logger';
 import { serveAssets } from './middlewares/serve-assets';
 import { serveBundle, type ServeBundlePluginOptions } from './middlewares/serve-bundle';
 import { symbolicate } from './middlewares/symbolicate';
-import { hot } from './middlewares/wss/hot';
 import type { DevServer, ServerOptions } from './types';
 import { isDevServerRunning } from './utils/is-dev-server-running';
-import { getWebSocketUpgradeHandler } from './utils/wss';
+import { HMRServer } from './wss/hmr-server';
+import { getWebSocketUpgradeHandler } from './wss/server';
 
 export async function runServer(
   config: ResolvedConfig,
@@ -52,10 +52,10 @@ export async function runServer(
     disableRequestLogging: true,
   });
 
-  const instanceManager = new InstanceManager(config);
+  const instanceManager = new InstanceManager(config, { host, port });
   const serveBundleOptions: ServeBundlePluginOptions = {
     getBundler: (bundleName, buildOptions) => {
-      return instanceManager.getBundler(bundleName, buildOptions);
+      return instanceManager.get(bundleName, buildOptions);
     },
   };
 
@@ -88,7 +88,8 @@ export async function runServer(
     },
   });
 
-  const hotWebSocketServer = hot({
+  const hmrServer = new HMRServer({
+    instanceManager,
     reportEvent: (event) => {
       reportEvent?.(event);
       reporter?.update(event);
@@ -111,7 +112,7 @@ export async function runServer(
       getWebSocketUpgradeHandler({
         ...communityWebsocketEndpoints,
         ...websocketEndpoints,
-        '/hot': hotWebSocketServer,
+        '/hot': hmrServer.server,
       }),
     );
 

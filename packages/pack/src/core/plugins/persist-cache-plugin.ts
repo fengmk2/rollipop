@@ -14,7 +14,7 @@ export interface PersistCachePluginOptions {
   sourceExtensions: string[];
 }
 
-export function persistCachePlugin(
+function persistCachePlugin(
   options: PersistCachePluginOptions,
   context: BundlerContext,
 ): rolldown.Plugin {
@@ -45,7 +45,7 @@ export function persistCachePlugin(
         },
       },
       handler(id) {
-        const key = getCacheKey(id, context.buildHash);
+        const key = getCacheKey(id, context.id);
         const cache = context.cache.get(key);
 
         if (cache != null) {
@@ -67,7 +67,7 @@ export function persistCachePlugin(
 
         // To avoid the re-caching
         if (!(moduleInfo && isCacheHit(moduleInfo.meta))) {
-          const key = getCacheKey(id, context.buildHash);
+          const key = getCacheKey(id, context.id);
           context.cache.set(key, code);
         }
       },
@@ -111,16 +111,18 @@ persistCachePlugin.enhance = function enhance(plugin: rolldown.Plugin): rolldown
   return plugin;
 };
 
-export function getCacheKey(id: string, buildHash: string) {
-  const { mtimeMs } = fs.statSync(id);
-  return xxhash(`${id}${buildHash}${mtimeMs}`);
-}
-
 type PersistCachePluginMeta = rolldown.CustomPluginOptions & {
   [CACHE_HIT]: true;
   [CACHE_HITS]: number;
 };
 
-export function isCacheHit(meta: rolldown.CustomPluginOptions): meta is PersistCachePluginMeta {
+function isCacheHit(meta: rolldown.CustomPluginOptions): meta is PersistCachePluginMeta {
   return CACHE_HIT in meta;
 }
+
+function getCacheKey(id: string, buildHash: string) {
+  const { mtimeMs } = fs.statSync(id);
+  return xxhash(`${id}${buildHash}${mtimeMs}`);
+}
+
+export { persistCachePlugin as persistCache };

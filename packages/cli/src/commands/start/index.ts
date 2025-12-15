@@ -36,6 +36,7 @@ export const command = new Command('start')
     const config = await loadConfig({
       cwd,
       configFile: options.config,
+      context: { command: 'start' },
     });
 
     if (options.resetCache) {

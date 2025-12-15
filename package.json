@@ -22,5 +22,8 @@
   "resolutions": {
     "hermes-compiler": "250829098.0.4"
   },
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "yarn@4.12.0",
+  "dependencies": {
+    "@swc/core": "^1.15.5"
+  }
 }

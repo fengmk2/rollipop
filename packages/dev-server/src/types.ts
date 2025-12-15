@@ -175,6 +175,12 @@ export type TerminalReportableEvent =
       type: 'unstable_server_menu_cleared';
     };
 
+export interface FormattedError {
+  type: string;
+  message: string;
+  errors: { description: string }[];
+}
+
 export interface Reporter {
   update(event: ReportableEvent): void;
 }

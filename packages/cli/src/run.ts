@@ -6,7 +6,7 @@ import { command as bundleCommand } from './commands/bundle';
 import { command as startCommand } from './commands/start';
 
 export function run(argv: string[]) {
-  Logo.printLogoOnce();
+  Logo.printOnce();
 
   const cli = program.name('rollipop').version(version);
 

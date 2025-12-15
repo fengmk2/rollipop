@@ -54,6 +54,7 @@ export const command = new Command('build')
     const config = await loadConfig({
       cwd,
       configFile: options.config,
+      context: { command: 'bundle' },
     });
 
     if (options.resetCache) {
@@ -61,17 +62,17 @@ export const command = new Command('build')
       logger.info('The transform cache was reset');
     }
 
-    const bundler = new Bundler(config);
-
     if (options.entryFile) {
       config.entry = options.entryFile;
     }
 
-    await bundler.build({
+    const bundler = new Bundler(config, {
       platform: options.platform,
       dev: options.dev,
       minify: options.minify,
       cache: options.cache,
       outfile: options.bundleOutput,
     });
+
+    await bundler.build();
   });

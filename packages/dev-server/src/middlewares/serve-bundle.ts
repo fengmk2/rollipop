@@ -1,6 +1,9 @@
-import type { BuildOptions, Bundler } from '@rollipop/pack';
+import type { BuildOptions } from '@rollipop/pack';
 import fp from 'fastify-plugin';
-import { asConst, FromSchema } from 'json-schema-to-ts';
+import { asConst, type FromSchema } from 'json-schema-to-ts';
+
+import { bundleRequestSchema, type BundleRequestSchema } from '../common/schema';
+import type { BundlerDevEngine } from '../instance-manager';
 
 const routeParamSchema = asConst({
   type: 'object',
@@ -11,102 +14,64 @@ const routeParamSchema = asConst({
   },
 });
 
-const queryParamSchema = asConst({
-  type: 'object',
-  properties: {
-    platform: {
-      type: 'string',
-    },
-    app: {
-      type: 'string',
-    },
-    dev: {
-      type: 'boolean',
-    },
-    minify: {
-      type: 'boolean',
-    },
-    runModule: {
-      type: 'boolean',
-    },
-    inlineSourceMap: {
-      type: 'boolean',
-    },
-    modulesOnly: {
-      type: 'boolean',
-    },
-  },
-  required: ['platform'],
-});
-
 type RouteParams = FromSchema<typeof routeParamSchema>;
-type QueryParams = FromSchema<typeof queryParamSchema>;
 
 export interface ServeBundlePluginOptions {
-  getBundler: (bundleName: string, buildOptions: BuildOptions) => Bundler | null;
+  getBundler: (bundleName: string, buildOptions: BuildOptions) => BundlerDevEngine;
 }
 
 export const serveBundle = fp<ServeBundlePluginOptions>(
   (fastify, options) => {
     const { getBundler } = options;
 
-    fastify.get<{ Params: RouteParams; Querystring: QueryParams }>('/:name.bundle', {
+    fastify.get<{ Params: RouteParams; Querystring: BundleRequestSchema }>('/:name.bundle', {
       schema: {
         params: routeParamSchema,
-        querystring: queryParamSchema,
+        querystring: bundleRequestSchema,
       },
       async handler(request, reply) {
-        const { params, query } = request;
+        const { params, query: buildOptions } = request;
 
         if (!params.name) {
           await reply.status(400).send('invalid bundle name');
           return;
         }
 
-        const bundler = getBundler(params.name, query);
+        const bundle = await getBundler(params.name, buildOptions).getBundle();
 
-        if (bundler) {
-          // TODO: watch mode
-          const chunk = await bundler.build(query);
-
-          await reply
-            .header('Content-Type', 'application/javascript')
-            .header('Content-Length', Buffer.byteLength(chunk.code))
-            .status(200)
-            .send(chunk.code);
-        } else {
-          await reply.status(404).send('bundle not found');
-        }
+        await reply
+          .header('Content-Type', 'application/javascript')
+          .header('Content-Length', Buffer.byteLength(bundle))
+          .status(200)
+          .send(bundle);
       },
     });
 
-    fastify.get<{ Params: RouteParams; Querystring: QueryParams }>('/:name.map', {
+    fastify.get<{ Params: RouteParams; Querystring: BundleRequestSchema }>('/:name.map', {
       schema: {
         params: routeParamSchema,
-        querystring: queryParamSchema,
+        querystring: bundleRequestSchema,
       },
       async handler(request, reply) {
-        const { params, query } = request;
+        const { params, query: buildOptions } = request;
 
         if (!params.name) {
           await reply.status(400).send('invalid bundle name');
           return;
         }
 
-        const bundler = getBundler(params.name, query);
+        const sourceMap = await getBundler(params.name, buildOptions).getSourceMap();
 
-        if (bundler) {
-          // TODO: serve sourcemap
-          fastify.log.trace('Bundler found');
-          await reply
-            .header('Access-Control-Allow-Origin', 'devtools://devtools')
-            .status(404)
-            .send('bundle not found');
-        } else {
-          await reply.status(404).send('bundle not found');
-        }
+        await reply
+          .header('Access-Control-Allow-Origin', 'devtools://devtools')
+          .header('Content-Type', 'application/json')
+          .header('Content-Length', Buffer.byteLength(sourceMap))
+          .status(200)
+          .send(sourceMap);
       },
     });
+
+    
   },
   { name: 'serve-bundle' },
 );

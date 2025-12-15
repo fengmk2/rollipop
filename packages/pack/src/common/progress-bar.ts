@@ -94,7 +94,7 @@ export class ProgressBar {
         `(${progress.toFixed(2)}%)`,
         chalk.gray(`${current}/${total} modules`),
       ].join(' ');
-      line2 = state?.id ? ' ' + chalk.grey(ellipsisLeft(state?.id, this.columns)) : '';
+      line2 = state?.id ? '  ' + chalk.grey(ellipsisLeft(state?.id, this.columns)) : '';
     }
 
     this.stale = false;

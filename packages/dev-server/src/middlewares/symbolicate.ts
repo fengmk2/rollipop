@@ -1,5 +1,5 @@
 import fp from 'fastify-plugin';
-import { asConst, FromSchema } from 'json-schema-to-ts';
+import { asConst, type FromSchema } from 'json-schema-to-ts';
 
 const bodySchema = asConst({
   type: 'object',
