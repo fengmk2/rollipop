@@ -38,6 +38,7 @@
   "scripts": {
     "prepare": "yarn build",
     "typecheck": "tsc --noEmit",
+    "test": "vitest --run",
     "build": "tsdown"
   },
   "dependencies": {
@@ -66,6 +67,7 @@
     "@types/ws": "^8",
     "react-refresh": "^0.18.0",
     "tsdown": "^0.18.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
   }
 }

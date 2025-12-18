@@ -23,13 +23,20 @@ function jsonPlugin(): rolldown.Plugin {
 }
 
 function jsonToEsm(data: Record<string, unknown>) {
-  const keys = new Set<string>();
-  const fields = Object.entries(data).map(([key, value]) => {
-    keys.add(key);
-    return `export const ${key} = ${JSON.stringify(value)};`;
+  const declarations: string[] = [];
+  const exports: string[] = [];
+  const exportDefaultMappings: string[] = [];
+
+  Object.entries(data).forEach(([key, value], index) => {
+    const identifier = `_${index}`;
+    declarations.push(`const ${identifier} = ${JSON.stringify(value)};`);
+    exports.push(`export { ${identifier} as "${key}" };`);
+    exportDefaultMappings.push(`"${key}":${identifier}`);
   });
 
-  return [...fields, `export default ${JSON.stringify(data)};`].join('\n');
+  return [...declarations, ...exports, `export default {${exportDefaultMappings.join(',')}};`].join(
+    '\n',
+  );
 }
 
 export { jsonPlugin as json };
