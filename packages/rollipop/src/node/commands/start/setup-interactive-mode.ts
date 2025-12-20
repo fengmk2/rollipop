@@ -54,7 +54,8 @@ export function setupInteractiveMode(options: SetupInteractiveModeOptions) {
   process.stdin.setRawMode(true);
 
   process.stdin.on('keypress', (_, key: readline.Key) => {
-    const { sequence, ctrl, shift } = key;
+    const { ctrl, shift } = key;
+    const sequence = key.sequence?.toLowerCase();
 
     if (sequence == null || debuggerOpener.isPrompting()) {
       return;

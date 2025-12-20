@@ -1,10 +1,11 @@
 import { Command } from '@commander-js/extra-typings';
-import { Rollipop, DEFAULT_HOST, DEFAULT_PORT } from 'rollipop';
+import { DEFAULT_HOST, DEFAULT_PORT } from '@rollipop/dev-server';
 
+import { Rollipop } from '../../../index';
 import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
 import { DebuggerOpener } from '../../debugger';
 import { logger } from '../../logger';
-import { TerminalReporter } from '../../terminal-reporter';
+import { TerminalReporter } from '../../reporter';
 import { setupInteractiveMode } from './setup-interactive-mode';
 
 export const command = new Command('start')
@@ -53,7 +54,7 @@ export const command = new Command('start')
       https: options.https,
       key: options.key,
       cert: options.cert,
-      reporter: new TerminalReporter({ clientLogs: options.clientLogs }),
+      reporter: options.clientLogs ? new TerminalReporter() : undefined,
       onDeviceConnected: () => {
         if (debuggerOpened === false && debuggerOpener.isAutoOpenEnabled()) {
           debuggerOpener.open().catch((error) => {

@@ -19,6 +19,7 @@ const Rollipop: Rollipop = Object.freeze({
 });
 
 export { Rollipop };
+export * as cli from './node/cli';
 
 // Re-export `@rollipop/core`
 export {

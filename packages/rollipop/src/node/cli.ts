@@ -1,7 +1,7 @@
 import { program } from '@commander-js/extra-typings';
 import { Logo } from '@rollipop/common';
 
-import { version } from '../package.json' with { type: 'json' };
+import { version } from '../../package.json' with { type: 'json' };
 import { command as bundleCommand } from './commands/bundle';
 import { command as startCommand } from './commands/start';
 
