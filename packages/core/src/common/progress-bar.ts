@@ -98,7 +98,7 @@ export class ProgressBar {
         chalk.gray(moduleCountLabel),
         chalk.gray(label),
       ].join(' ');
-      line2 = state?.id ? '  ' + chalk.grey(ellipsisLeft(state?.id, this.columns)) : '';
+      line2 = state?.id ? '  ' + chalk.grey(ellipsisLeft(state?.id, this.columns - 10)) : '';
     }
 
     this.stale = false;
