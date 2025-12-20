@@ -147,9 +147,7 @@ function reactNativePlugin(
         return;
       }
 
-      if (assetsDir == null) {
-        this.warn('`assetsDir` is not set, skipping assets copying');
-      } else {
+      if (assetsDir != null) {
         this.debug(`Copying assets to ${assetsDir}`);
         await copyAssetsToDestination({
           assets,
