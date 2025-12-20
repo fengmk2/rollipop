@@ -8,8 +8,12 @@ export * as plugins from './core/plugins';
 // Config
 export * from './config';
 
-// HMR Types
+// Types
+export type * from './types';
 export type * from './types/hmr';
+
+// Reporter
+export { TerminalReporter as DefaultReporter } from './reporter';
 
 // Re-export `rolldown`
 export * as rolldown from 'rolldown';

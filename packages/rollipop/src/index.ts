@@ -36,6 +36,8 @@ export {
   type TerminalConfig,
   type RolldownConfig,
   type BuildOptions,
+  type Reporter,
+  type ReportableEvent,
 } from '@rollipop/core';
 
 // Re-export `@rollipop/dev-server`
@@ -44,7 +46,4 @@ export {
   DEFAULT_PORT,
   type ServerOptions,
   type DevServer,
-  type Reporter,
-  type TerminalReportableEvent,
-  type ReportableEvent,
 } from '@rollipop/dev-server';

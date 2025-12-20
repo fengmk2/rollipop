@@ -1,4 +1,5 @@
 import type { FileStorage } from '@rollipop/common';
+import { DevOptions } from 'rolldown/experimental';
 
 import type { FileSystemCache } from './cache/file-system-cache';
 
@@ -9,6 +10,11 @@ export interface BuildOptions {
   cache?: boolean;
   outfile?: string;
 }
+
+export type DevEngineOptions = DevOptions & {
+  host: string;
+  port: number;
+};
 
 export interface BundlerContext {
   id: string;

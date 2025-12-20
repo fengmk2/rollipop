@@ -6,7 +6,7 @@ import type { BuildOptions } from '../core/types';
 import { md5 } from './hash';
 import { serialize } from './serialize';
 
-export function getId(config: ResolvedConfig, buildOptions: BuildOptions) {
+export function createId(config: ResolvedConfig, buildOptions: BuildOptions) {
   return md5(
     serialize([
       ROLLIPOP_VERSION,

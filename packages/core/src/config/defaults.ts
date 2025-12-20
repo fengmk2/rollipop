@@ -11,8 +11,10 @@ import {
   DEFAULT_SOURCE_EXTENSIONS,
 } from '../constants';
 import { getInitializeCorePath, getPolyfillScriptPaths } from '../internal/react-native';
+import { TerminalReporter } from '../reporter';
+import type { Reporter } from '../types';
 import { resolvePackagePath } from '../utils/node-resolve';
-import { DefineConfigContext } from './define-config';
+import type { DefineConfigContext } from './define-config';
 import type { Config, Polyfill } from './types';
 
 export function getDefaultConfig(
@@ -69,6 +71,7 @@ export function getDefaultConfig(
     terminal: {
       status: process.stderr.isTTY ? 'progress' : 'compat',
     },
+    reporter: new TerminalReporter() as Reporter,
   } satisfies Config;
 
   return defaultConfig;

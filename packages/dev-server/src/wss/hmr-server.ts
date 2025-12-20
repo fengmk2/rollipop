@@ -1,32 +1,32 @@
 import {
   HMRServerMessage,
   rolldownExperimental,
+  type ReportableEvent,
   type HMRClientMessage,
   type HMRServerError,
 } from '@rollipop/core';
 import { invariant } from 'es-toolkit';
 import type * as ws from 'ws';
 
-import { BundlerDevEngine, InstanceManager } from '../instance-manager';
-import { ReportableEvent } from '../types';
+import { BundlerDevEngine, type BundlerPool } from '../bundler-pool';
 import { WebSocketClient, WebSocketServer } from './server';
 
 export interface HMRServerOptions {
-  instanceManager: InstanceManager;
-  reportEvent?: (event: ReportableEvent) => void;
+  bundlerPool: BundlerPool;
+  reportEvent: (event: ReportableEvent) => void;
 }
 
 type HMRBinding = (updates: rolldownExperimental.BindingClientHmrUpdate[]) => void;
 
 export class HMRServer extends WebSocketServer {
-  private instanceManager: InstanceManager;
-  private reportEvent?: (event: ReportableEvent) => void;
+  private bundlerPool: BundlerPool;
+  private reportEvent: HMRServerOptions['reportEvent'];
   private instances: Map<number, BundlerDevEngine> = new Map();
   private bindings: Map<number, HMRBinding> = new Map();
 
-  constructor({ instanceManager, reportEvent }: HMRServerOptions) {
+  constructor({ bundlerPool, reportEvent }: HMRServerOptions) {
     super('hmr', { noServer: true });
-    this.instanceManager = instanceManager;
+    this.bundlerPool = bundlerPool;
     this.reportEvent = reportEvent;
   }
 
@@ -41,7 +41,7 @@ export class HMRServer extends WebSocketServer {
   private async handleConnected(client: WebSocketClient, platform: string, bundleEntry: string) {
     try {
       this.logger.trace(`HMR client connected (clientId: ${client.id})`, { platform, bundleEntry });
-      const devEngineInstance = this.instanceManager.get(bundleEntry, {
+      const devEngineInstance = this.bundlerPool.get(bundleEntry, {
         platform,
         dev: true,
       });
@@ -209,7 +209,7 @@ export class HMRServer extends WebSocketServer {
         break;
 
       case 'hmr:log':
-        this.reportEvent?.({
+        this.reportEvent({
           type: 'client_log',
           level: message.level,
           data: message.data,

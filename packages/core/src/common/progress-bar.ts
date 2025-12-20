@@ -92,7 +92,6 @@ export class ProgressBar {
       line1 = [
         chalk.cyan('●'),
         bar,
-        'build in progress',
         `(${percentageLabel})`,
         chalk.gray(moduleCountLabel),
         chalk.gray(label),

@@ -1,6 +1,7 @@
 import type * as rolldown from 'rolldown';
 
 export interface StatusPluginOptions {
+  initialTotalModules?: number;
   onStart?: () => void;
   onEnd?: (result: StatusPluginEndResult) => void;
   onResolve?: (id: string) => void;
@@ -10,18 +11,22 @@ export interface StatusPluginOptions {
 
 export interface StatusPluginTransformResult {
   id: string;
+  totalModules: number | undefined;
   transformedModules: number;
 }
 
 export interface StatusPluginEndResult {
-  transformedModules: number;
+  totalModules: number;
   duration: number;
-  hasErrors: boolean;
+  error: Error | undefined;
 }
 
 function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
+  let totalModules = options?.initialTotalModules ?? 0;
   let startedAt = 0;
   let transformedModules = 0;
+
+  let unknownTotalModules = totalModules === 0;
 
   return {
     name: 'rollipop:status',
@@ -31,10 +36,12 @@ function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
       options?.onStart?.();
     },
     buildEnd(error) {
+      totalModules = transformedModules;
+      unknownTotalModules = false;
       options?.onEnd?.({
-        transformedModules,
+        error,
+        totalModules,
         duration: performance.now() - startedAt,
-        hasErrors: Boolean(error),
       });
     },
     resolveId: {
@@ -47,7 +54,14 @@ function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
       order: 'post',
       handler(_code, id) {
         ++transformedModules;
-        options?.onTransform?.({ id, transformedModules });
+        if (!unknownTotalModules && totalModules < transformedModules) {
+          totalModules = transformedModules;
+        }
+        options?.onTransform?.({
+          id,
+          totalModules: unknownTotalModules ? undefined : totalModules,
+          transformedModules,
+        });
       },
     },
     watchChange(id) {

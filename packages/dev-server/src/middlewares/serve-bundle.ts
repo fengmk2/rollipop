@@ -2,8 +2,9 @@ import type { BuildOptions } from '@rollipop/core';
 import fp from 'fastify-plugin';
 import { asConst, type FromSchema } from 'json-schema-to-ts';
 
+import type { BundlerDevEngine } from '../bundler-pool';
 import { bundleRequestSchema, type BundleRequestSchema } from '../common/schema';
-import type { BundlerDevEngine } from '../instance-manager';
+import { BundleResponse } from '../utils/response';
 
 const routeParamSchema = asConst({
   type: 'object',
@@ -30,20 +31,45 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
         querystring: bundleRequestSchema,
       },
       async handler(request, reply) {
-        const { params, query: buildOptions } = request;
+        const {
+          params,
+          query: buildOptions,
+          headers: { accept },
+        } = request;
 
         if (!params.name) {
           await reply.status(400).send('invalid bundle name');
           return;
         }
 
-        const bundle = await getBundler(params.name, buildOptions).getBundle();
+        const bundler = getBundler(params.name, buildOptions);
+        const isSupportMultipart = accept?.includes('multipart/mixed') ?? false;
 
-        await reply
-          .header('Content-Type', 'application/javascript')
-          .header('Content-Length', Buffer.byteLength(bundle))
-          .status(200)
-          .send(bundle);
+        if (isSupportMultipart) {
+          const bundleResponse = new BundleResponse(reply);
+
+          const transformHandler = (_id: string, totalModules = 0, transformedModules: number) => {
+            bundleResponse.writeBundleState(transformedModules, totalModules);
+          };
+
+          bundler.on('transform', transformHandler);
+          await bundler
+            .getBundle()
+            .then((chunk) => bundleResponse.endWithBundle(chunk))
+            .catch((error) => {
+              bundleResponse.endWithError(error);
+              throw error;
+            })
+            .finally(() => bundler.off('transform', transformHandler));
+        } else {
+          this.log.debug(`client is not support multipart/mixed content: ${accept ?? '<empty>'}`);
+          const bundle = await bundler.getBundle();
+          await reply
+            .header('Content-Type', 'application/javascript')
+            .header('Content-Length', Buffer.byteLength(bundle))
+            .status(200)
+            .send(bundle);
+        }
       },
     });
 
@@ -70,8 +96,6 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
           .send(sourceMap);
       },
     });
-
-    
   },
   { name: 'serve-bundle' },
 );

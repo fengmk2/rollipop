@@ -4,7 +4,7 @@ export async function runBuild(
   config: ResolvedConfig,
   options: BuildOptions,
 ): Promise<rolldown.OutputChunk> {
-  const bundler = new Bundler(config, options);
+  const bundler = new Bundler(config);
 
-  return await bundler.build();
+  return await bundler.build(options);
 }

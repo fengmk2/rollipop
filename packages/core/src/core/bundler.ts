@@ -3,52 +3,63 @@ import path from 'node:path';
 import { Logo, getCachePath, FileStorage } from '@rollipop/common';
 import { invariant, merge } from 'es-toolkit';
 import * as rolldown from 'rolldown';
-import { dev, DevOptions, type DevEngine } from 'rolldown/experimental';
+import { dev } from 'rolldown/experimental';
 
 import type { ResolvedConfig } from '../config/defaults';
-import { logger } from '../logger';
-import { getId } from '../utils/id';
+import { createId } from '../utils/id';
 import { FileSystemCache } from './cache/file-system-cache';
 import { getOverrideOptionsForDevServer, resolveRolldownOptions } from './rolldown';
-import type { BuildOptions } from './types';
+import type { BuildOptions, BundlerContext, DevEngineOptions } from './types';
 
 export class Bundler {
-  private readonly cache: FileSystemCache;
-  private readonly storage: FileStorage;
-  private readonly _id: string;
-  private _devEngine: DevEngine | null = null;
-
-  static getId(config: ResolvedConfig, buildOptions: BuildOptions) {
-    return getId(config, buildOptions);
-  }
-
-  constructor(
-    private readonly config: ResolvedConfig,
-    private readonly buildOptions: BuildOptions,
+  static async devEngine(
+    config: ResolvedConfig,
+    buildOptions: Omit<BuildOptions, 'dev' | 'outfile'>,
+    devEngineOptions: DevEngineOptions,
   ) {
+    const resolvedBuildOptions = { ...buildOptions, dev: true };
+    const contextBase = Bundler.createContext(config, resolvedBuildOptions);
+    const { input = {}, output = {} } = await resolveRolldownOptions(
+      { ...contextBase, mode: 'serve' },
+      config,
+      resolvedBuildOptions,
+    );
+
+    const devServerOptions = getOverrideOptionsForDevServer(devEngineOptions);
+    const mergedInput = merge(input, devServerOptions.input);
+    const mergedOutput = merge(output, devServerOptions.output);
+
+    const devEngine = await dev(mergedInput, mergedOutput, devEngineOptions);
+
+    return devEngine;
+  }
+
+  static createId(config: ResolvedConfig, buildOptions: BuildOptions) {
+    return createId(config, buildOptions);
+  }
+
+  private static createContext(config: ResolvedConfig, buildOptions: BuildOptions) {
+    const id = Bundler.createId(config, buildOptions);
+    const cache = new FileSystemCache(path.join(getCachePath(config.root), id));
+    const storage = FileStorage.getInstance(config.root);
+    const context: Omit<BundlerContext, 'mode'> = { id, cache, storage };
+
+    return context;
+  }
+
+  constructor(private readonly config: ResolvedConfig) {
     Logo.printOnce();
-    this._id = getId(config, buildOptions);
-    this.cache = new FileSystemCache(path.join(getCachePath(this.config.root), this.id));
-    this.storage = FileStorage.getInstance(this.config.root);
   }
 
-  get id() {
-    return this._id;
-  }
-
-  private async resolveOptions(mode: 'build' | 'serve') {
-    const { id, cache, storage, config, buildOptions } = this;
-    const resolvedOptions = await resolveRolldownOptions(
-      { id, cache, storage, mode },
+  async build(buildOptions: BuildOptions) {
+    const contextBase = Bundler.createContext(this.config, buildOptions);
+    const { config } = this;
+    const { input, output } = await resolveRolldownOptions(
+      { ...contextBase, mode: 'build' },
       config,
       buildOptions,
     );
 
-    return resolvedOptions;
-  }
-
-  async build() {
-    const { input, output } = await this.resolveOptions('build');
     const rolldownBuildOptions: rolldown.BuildOptions = {
       ...input,
       output,
@@ -60,22 +71,5 @@ export class Bundler {
     invariant(chunk, 'Bundled chunk is not found');
 
     return chunk;
-  }
-
-  async devEngine(devOptions: DevOptions & { host: string; port: number }) {
-    if (this._devEngine == null) {
-      if (this.buildOptions.dev === false) {
-        logger.warn('The dev server only supports dev mode. Overriding config to enable dev mode');
-      }
-
-      const { input = {}, output = {} } = await this.resolveOptions('serve');
-      const devServerOptions = getOverrideOptionsForDevServer(devOptions);
-      const mergedInput = merge(input, devServerOptions.input);
-      const mergedOutput = merge(output, devServerOptions.output);
-
-      this._devEngine = await dev(mergedInput, mergedOutput, devOptions);
-    }
-
-    return this._devEngine;
   }
 }

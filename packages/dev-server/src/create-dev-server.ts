@@ -5,15 +5,15 @@ import { createDevMiddleware } from '@react-native/dev-middleware';
 import type { ResolvedConfig } from '@rollipop/core';
 import Fastify from 'fastify';
 
+import { BundlerPool } from './bundler-pool';
 import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { errorHandler } from './error';
-import { InstanceManager } from './instance-manager';
 import { DevServerLogger, logger } from './logger';
 import { serveAssets } from './middlewares/serve-assets';
 import { serveBundle, type ServeBundlePluginOptions } from './middlewares/serve-bundle';
 import { symbolicate } from './middlewares/symbolicate';
 import type { DevServer, ServerOptions } from './types';
-import { isDevServerRunning } from './utils/is-dev-server-running';
+import { assertDevServerStatus } from './utils/dev-server';
 import { HMRServer } from './wss/hmr-server';
 import { getWebSocketUpgradeHandler } from './wss/server';
 
@@ -26,7 +26,6 @@ export async function createDevServer(
     port = DEFAULT_PORT,
     host = DEFAULT_HOST,
     https = false,
-    reporter,
     onDeviceConnected,
     onDeviceMessage,
     onDeviceConnectionError,
@@ -38,28 +37,17 @@ export async function createDevServer(
   }
 
   const serverBaseUrl = url.format({ protocol: https ? 'https' : 'http', hostname: host, port });
-  const serverStatus = await isDevServerRunning(serverBaseUrl, projectRoot);
-
-  if (serverStatus === 'matched_server_running') {
-    logger.warn(`A dev server is already running for this project on port ${port}. Exiting.`);
-    process.exit(1);
-  } else if (serverStatus === 'port_taken') {
-    logger.error(
-      `Another process is running on port ${port}. Please terminate this ` +
-        'process and try again, or use another port with "--port".',
-    );
-    process.exit(1);
-  }
+  await assertDevServerStatus({ devServerUrl: serverBaseUrl, projectRoot, port });
 
   const fastify = Fastify({
     loggerInstance: new DevServerLogger(),
     disableRequestLogging: true,
   });
 
-  const instanceManager = new InstanceManager(config, { host, port });
+  const bundlerPool = new BundlerPool(config, { host, port });
   const serveBundleOptions: ServeBundlePluginOptions = {
     getBundler: (bundleName, buildOptions) => {
-      return instanceManager.get(bundleName, buildOptions);
+      return bundlerPool.get(bundleName, buildOptions);
     },
   };
 
@@ -103,10 +91,10 @@ export async function createDevServer(
     .setErrorHandler(errorHandler);
 
   const hmrServer = new HMRServer({
-    instanceManager,
+    bundlerPool,
     reportEvent: (event) => {
       reportEvent?.(event);
-      reporter?.update(event);
+      config.reporter.update(event);
     },
   })
     .on('connection', (client) => onDeviceConnected?.(client))

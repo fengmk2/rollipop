@@ -1,11 +1,11 @@
 import { Command } from '@commander-js/extra-typings';
 import { DEFAULT_HOST, DEFAULT_PORT } from '@rollipop/dev-server';
+import { noop } from 'es-toolkit';
 
 import { Rollipop } from '../../../index';
 import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
 import { DebuggerOpener } from '../../debugger';
 import { logger } from '../../logger';
-import { TerminalReporter } from '../../reporter';
 import { setupInteractiveMode } from './setup-interactive-mode';
 
 export const command = new Command('start')
@@ -46,6 +46,10 @@ export const command = new Command('start')
       logger.info('The transform cache was reset');
     }
 
+    if (options.clientLogs === false) {
+      config.reporter = { update: noop };
+    }
+
     let debuggerOpened = false;
     const server = await Rollipop.runServer(config, {
       projectRoot: cwd,
@@ -54,7 +58,6 @@ export const command = new Command('start')
       https: options.https,
       key: options.key,
       cert: options.cert,
-      reporter: options.clientLogs ? new TerminalReporter() : undefined,
       onDeviceConnected: () => {
         if (debuggerOpened === false && debuggerOpener.isAutoOpenEnabled()) {
           debuggerOpener.open().catch((error) => {

@@ -11,6 +11,7 @@ import { invariant } from 'es-toolkit';
 import { logger } from './logger';
 import { ServerOptions } from './types';
 import { getBaseBundleName } from './utils/bundle';
+import { bindReporter } from './utils/config';
 import { taskHandler } from './utils/promise';
 import { replaceSourceMappingURL } from './utils/source-map';
 
@@ -29,13 +30,26 @@ export interface BundlerDevEngineOptions {
 }
 
 export interface BundlerDevEngineEventMap {
+  buildStart: [];
+  buildDone: [];
+  buildFailed: [Error];
+  /**
+   * @param id
+   * @param totalModules
+   * @param transformedModules
+   */
+  transform: [string, number | undefined, number];
+  /**
+   * @param id
+   */
+  watchChange: [string];
   hmrUpdates: [rolldownExperimental.BindingClientHmrUpdate[]];
 }
 
 export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
   private readonly buildResultHolder: BuildResultHolder = {};
-  private readonly bundler: Bundler;
   private readonly initializeHandle: ReturnType<typeof taskHandler>;
+  private readonly _id: string;
   private _devEngine: rolldownExperimental.DevEngine | null = null;
   private _state: 'idle' | 'initializing' | 'ready' = 'idle';
 
@@ -45,13 +59,13 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
     private readonly buildOptions: BuildOptions,
   ) {
     super();
-    this.bundler = new Bundler(config, buildOptions);
+    this._id = Bundler.createId(config, buildOptions);
     this.initializeHandle = taskHandler();
     void this.initialize();
   }
 
   get id() {
-    return this.bundler.id;
+    return this._id;
   }
 
   get devEngine() {
@@ -78,7 +92,7 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
 
     this._state = 'initializing';
 
-    const devEngine = await this.bundler.devEngine({
+    const devEngine = await Bundler.devEngine(bindReporter(this.config, this), this.buildOptions, {
       host: this.options.server.host,
       port: this.options.server.port,
       onHmrUpdates: (errorOrResult) => {
@@ -126,11 +140,11 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
 
   async getBundle() {
     await this.ensureInitialized;
+
     const state = await this.devEngine.getBundleState();
     if (state.hasStaleOutput || this.buildResultHolder.bundle == null) {
       await this.devEngine.ensureLatestBuildOutput();
     }
-
     invariant(this.buildResultHolder.bundle, 'Bundle is not available');
 
     return this.buildResultHolder.bundle;
@@ -138,6 +152,7 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
 
   async getSourceMap() {
     await this.ensureInitialized;
+
     const state = await this.devEngine.getBundleState();
     if (state.hasStaleOutput || this.buildResultHolder.sourceMap == null) {
       await this.devEngine.ensureLatestBuildOutput();
@@ -148,8 +163,8 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
   }
 }
 
-export class InstanceManager {
-  private static readonly INSTANCES: Map<string, BundlerDevEngine> = new Map();
+export class BundlerPool {
+  private static readonly instances: Map<string, BundlerDevEngine> = new Map();
 
   constructor(
     private readonly config: ResolvedConfig,
@@ -157,13 +172,13 @@ export class InstanceManager {
   ) {}
 
   private instanceKey(bundleName: string, buildOptions: BuildOptions) {
-    const id = Bundler.getId(this.config, buildOptions);
+    const id = Bundler.createId(this.config, buildOptions);
     return `${bundleName}-${id}`;
   }
 
   get(bundleName: string, buildOptions: Pick<BuildOptions, 'platform' | 'dev'>) {
     const key = this.instanceKey(getBaseBundleName(bundleName), buildOptions);
-    const instance = InstanceManager.INSTANCES.get(key);
+    const instance = BundlerPool.instances.get(key);
 
     if (instance) {
       return instance;
@@ -177,7 +192,7 @@ export class InstanceManager {
         buildOptions,
       );
       logger.debug('Setting new bundler instance', { key });
-      InstanceManager.INSTANCES.set(key, instance);
+      BundlerPool.instances.set(key, instance);
 
       return instance;
     }

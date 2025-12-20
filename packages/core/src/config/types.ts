@@ -1,6 +1,8 @@
 import type * as rolldown from 'rolldown';
 import type { DevWatchOptions, TransformOptions } from 'rolldown/experimental';
 
+import type { Reporter } from '../types';
+
 export interface Config {
   root?: string;
   entry?: string;
@@ -10,6 +12,7 @@ export interface Config {
   watcher?: WatcherConfig;
   reactNative?: ReactNativeConfig;
   terminal?: TerminalConfig;
+  reporter?: Reporter;
   plugins?: rolldown.Plugin[];
   rolldown?:
     | RolldownConfig

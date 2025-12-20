@@ -6,7 +6,7 @@ import type * as rolldown from 'rolldown';
 import type { TransformOptions } from 'rolldown/experimental';
 
 import { isDebugEnabled } from '../../../common/src/debug';
-import { DevServerOptions } from '../../../dev-server/src/instance-manager';
+import { DevServerOptions } from '../../../dev-server/src/bundler-pool';
 import { asLiteral, asIdentifier, iife, nodeEnvironment } from '../common/code';
 import { statusPresets } from '../common/status-presets';
 import { Polyfill, ResolvedConfig } from '../config';
@@ -90,8 +90,12 @@ export async function resolveRolldownOptions(
 
   const statusPreset =
     config.terminal.status === 'progress'
-      ? statusPresets.progressBar(context, `[${platform}, ${buildOptions.dev ? 'dev' : 'prod'}]`)
-      : statusPresets.compat();
+      ? statusPresets.progressBar(
+          config.reporter,
+          context,
+          `[${platform}, ${buildOptions.dev ? 'dev' : 'prod'}]`,
+        )
+      : statusPresets.compat(config.reporter);
 
   const inputOptions: rolldown.InputOptions = {
     cwd: config.root,

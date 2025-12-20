@@ -1,17 +1,19 @@
-import type { ReportableEvent, Reporter } from '@rollipop/dev-server';
+import { Logger } from '@rollipop/common';
 
-import { logger } from './logger';
+import type { Reporter, ReportableEvent } from './types';
 
 export class TerminalReporter implements Reporter {
+  private logger = new Logger('app');
+
   update(event: ReportableEvent): void {
     if (event.type === 'client_log') {
       if (event.level === 'group' || event.level === 'groupCollapsed') {
-        logger.info(...event.data);
+        this.logger.info(...event.data);
         return;
       } else if (event.level === 'groupEnd') {
         return;
       }
-      logger[event.level](...event.data);
+      this.logger[event.level](...event.data);
     }
   }
 }
