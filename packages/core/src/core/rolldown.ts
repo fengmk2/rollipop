@@ -6,7 +6,6 @@ import type * as rolldown from 'rolldown';
 import type { TransformOptions } from 'rolldown/experimental';
 
 import { isDebugEnabled } from '../../../common/src/debug';
-import { DevServerOptions } from '../../../dev-server/src/bundler-pool';
 import { asLiteral, asIdentifier, iife, nodeEnvironment } from '../common/code';
 import { statusPresets } from '../common/status-presets';
 import { Polyfill, ResolvedConfig } from '../config';
@@ -68,6 +67,10 @@ export async function resolveRolldownOptions(
   const mergedTransformOptions = merge(
     {
       target: 'es2015',
+      jsx: {
+        runtime: 'automatic',
+        development: dev,
+      },
       define: {
         __DEV__: asLiteral(dev),
         'process.env.NODE_ENV': asLiteral(nodeEnvironment(dev)),
@@ -108,6 +111,7 @@ export async function resolveRolldownOptions(
       prelude({ modulePaths: preludePaths }),
       persistCache({ enabled: cache, sourceExtensions }, context),
       reactNative({
+        dev,
         root: config.root,
         mode: context.mode,
         codegenFilter: codegen.filter,
@@ -149,7 +153,7 @@ export async function resolveRolldownOptions(
   };
 
   const outputOptions: rolldown.OutputOptions = {
-    banner: [...getGlobalVariables(dev, context.mode)].join('\n'),
+    postBanner: [...getGlobalVariables(dev, context.mode)].join('\n'),
     intro: [...loadPolyfills(polyfills)].join('\n'),
     file: buildOptions.outfile,
     minify,
@@ -222,7 +226,7 @@ async function applyFinalizer(
   };
 }
 
-export function getOverrideOptionsForDevServer(devServerOptions: DevServerOptions) {
+export function getOverrideOptionsForDevServer() {
   const hotRuntimeImplement = fs.readFileSync(
     require.resolve('@rollipop/core/hmr-runtime'),
     'utf-8',
@@ -240,13 +244,13 @@ export function getOverrideOptionsForDevServer(devServerOptions: DevServerOption
       },
       incrementalBuild: true,
       strictExecutionOrder: true,
+      nativeMagicString: true,
     },
     treeshake: false,
   };
 
   const output: rolldown.OutputOptions = {
     sourcemap: true,
-    sourcemapBaseUrl: `http://${devServerOptions.host}:${devServerOptions.port}`,
   };
 
   return { input, output };

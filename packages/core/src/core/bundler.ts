@@ -25,7 +25,7 @@ export class Bundler {
       resolvedBuildOptions,
     );
 
-    const devServerOptions = getOverrideOptionsForDevServer(devEngineOptions);
+    const devServerOptions = getOverrideOptionsForDevServer();
     const mergedInput = merge(input, devServerOptions.input);
     const mergedOutput = merge(output, devServerOptions.output);
 

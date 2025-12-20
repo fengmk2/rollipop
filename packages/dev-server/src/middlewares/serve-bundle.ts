@@ -1,4 +1,5 @@
 import type { BuildOptions } from '@rollipop/core';
+import { invariant } from 'es-toolkit';
 import fp from 'fastify-plugin';
 import { asConst, type FromSchema } from 'json-schema-to-ts';
 
@@ -21,7 +22,7 @@ export interface ServeBundlePluginOptions {
   getBundler: (bundleName: string, buildOptions: BuildOptions) => BundlerDevEngine;
 }
 
-export const serveBundle = fp<ServeBundlePluginOptions>(
+const plugin = fp<ServeBundlePluginOptions>(
   (fastify, options) => {
     const { getBundler } = options;
 
@@ -55,7 +56,7 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
           bundler.on('transform', transformHandler);
           await bundler
             .getBundle()
-            .then((chunk) => bundleResponse.endWithBundle(chunk))
+            .then((bundle) => bundleResponse.endWithBundle(bundle.code))
             .catch((error) => {
               bundleResponse.endWithError(error);
               throw error;
@@ -64,11 +65,12 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
         } else {
           this.log.debug(`client is not support multipart/mixed content: ${accept ?? '<empty>'}`);
           const bundle = await bundler.getBundle();
+          const code = bundle.code;
           await reply
             .header('Content-Type', 'application/javascript')
-            .header('Content-Length', Buffer.byteLength(bundle))
+            .header('Content-Length', Buffer.byteLength(code))
             .status(200)
-            .send(bundle);
+            .send(code);
         }
       },
     });
@@ -86,7 +88,9 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
           return;
         }
 
-        const sourceMap = await getBundler(params.name, buildOptions).getSourceMap();
+        const bundle = await getBundler(params.name, buildOptions).getBundle();
+        const sourceMap = bundle.sourceMap;
+        invariant(sourceMap, 'Source map is not available');
 
         await reply
           .header('Access-Control-Allow-Origin', 'devtools://devtools')
@@ -99,3 +103,5 @@ export const serveBundle = fp<ServeBundlePluginOptions>(
   },
   { name: 'serve-bundle' },
 );
+
+export { plugin as serveBundle };

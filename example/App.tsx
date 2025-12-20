@@ -37,6 +37,8 @@ function AppContent() {
     return () => clearTimeout(timer);
   }, []);
 
+  throw new Error('Test error');
+
   return (
     <View style={styles.container}>
       <View style={styles.floatingView}>

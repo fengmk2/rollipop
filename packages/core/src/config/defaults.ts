@@ -49,7 +49,7 @@ export function getDefaultConfig(
           (path) =>
             ({
               type: 'iife',
-              code: stripFlowSyntax(fs.readFileSync(path, 'utf-8')),
+              code: stripFlowSyntax(fs.readFileSync(path, 'utf-8'), path).code,
             }) satisfies Polyfill,
         ),
         isDevServer ? require.resolve('@rollipop/core/hmr-shims') : undefined,

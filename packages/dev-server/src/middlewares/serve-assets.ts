@@ -27,7 +27,7 @@ export interface ServeAssetPluginOptions {
   port: number;
 }
 
-export const serveAssets = fp<ServeAssetPluginOptions>(
+const plugin = fp<ServeAssetPluginOptions>(
   (fastify, options) => {
     const { projectRoot, host, port, https } = options;
     const baseUrl = https ? `https://${host}:${port}` : `http://${host}:${port}`;
@@ -75,3 +75,5 @@ export const serveAssets = fp<ServeAssetPluginOptions>(
   },
   { name: 'serve-assets' },
 );
+
+export { plugin as serveAssets };

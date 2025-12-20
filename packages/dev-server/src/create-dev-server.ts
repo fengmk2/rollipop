@@ -2,7 +2,7 @@ import url from 'url';
 
 import { createDevServerMiddleware } from '@react-native-community/cli-server-api';
 import { createDevMiddleware } from '@react-native/dev-middleware';
-import type { ResolvedConfig } from '@rollipop/core';
+import type { BuildOptions, ResolvedConfig } from '@rollipop/core';
 import Fastify from 'fastify';
 
 import { BundlerPool } from './bundler-pool';
@@ -10,7 +10,7 @@ import { DEFAULT_HOST, DEFAULT_PORT } from './constants';
 import { errorHandler } from './error';
 import { DevServerLogger, logger } from './logger';
 import { serveAssets } from './middlewares/serve-assets';
-import { serveBundle, type ServeBundlePluginOptions } from './middlewares/serve-bundle';
+import { serveBundle } from './middlewares/serve-bundle';
 import { symbolicate } from './middlewares/symbolicate';
 import type { DevServer, ServerOptions } from './types';
 import { assertDevServerStatus } from './utils/dev-server';
@@ -45,10 +45,8 @@ export async function createDevServer(
   });
 
   const bundlerPool = new BundlerPool(config, { host, port });
-  const serveBundleOptions: ServeBundlePluginOptions = {
-    getBundler: (bundleName, buildOptions) => {
-      return bundlerPool.get(bundleName, buildOptions);
-    },
+  const getBundler = (bundleName: string, buildOptions: BuildOptions) => {
+    return bundlerPool.get(bundleName, buildOptions);
   };
 
   const {
@@ -85,8 +83,8 @@ export async function createDevServer(
   fastify
     .use(communityMiddleware)
     .use(devMiddleware)
-    .register(symbolicate)
-    .register(serveBundle, serveBundleOptions)
+    .register(symbolicate, { getBundler })
+    .register(serveBundle, { getBundler })
     .register(serveAssets, { projectRoot, host, port, https })
     .setErrorHandler(errorHandler);
 

@@ -9,6 +9,7 @@ declare module 'flow-remove-types' {
     options?: FlowRemoveTypesOptions,
   ): {
     toString: () => string;
+    generateMap: () => any;
   };
 
   export default flowRemoveTypes;

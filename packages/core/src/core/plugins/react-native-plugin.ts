@@ -14,6 +14,7 @@ import { persistCache } from './persist-cache-plugin';
 export interface ReactNativePluginOptions {
   root: string;
   mode: BuildMode;
+  dev: boolean;
   flowFilter: rolldown.HookFilter;
   codegenFilter: rolldown.HookFilter;
   assetExtensions: string[];
@@ -40,6 +41,7 @@ function reactNativePlugin(options: ReactNativePluginOptions): rolldown.Plugin[]
           filename: path.basename(id),
           babelrc: false,
           configFile: false,
+          sourceMaps: true,
           parserOpts: { flow: 'all' } as any,
           plugins: [
             require.resolve('babel-plugin-syntax-hermes-parser'),
@@ -61,6 +63,7 @@ function reactNativePlugin(options: ReactNativePluginOptions): rolldown.Plugin[]
 
         return {
           code: result.code,
+          map: result.map,
           meta: setFlag(this, id, TransformFlags.SKIP_FLOW),
         };
       },
@@ -76,8 +79,11 @@ function reactNativePlugin(options: ReactNativePluginOptions): rolldown.Plugin[]
           return;
         }
 
+        const result = stripFlowSyntax(code, id);
+
         return {
-          code: stripFlowSyntax(code),
+          code: result.code,
+          map: result.map,
           /**
            * Treat the transformed code as TSX code
            * because Flow modules can be `.js` files with type annotations and JSX syntax.
@@ -93,7 +99,8 @@ function reactNativePlugin(options: ReactNativePluginOptions): rolldown.Plugin[]
     transform: {
       order: 'post',
       handler(code, id) {
-        return { code: blockScoping(code, id) };
+        const result = blockScoping(code, id, options.dev);
+        return { code: result.code, map: result.map };
       },
     },
   };
@@ -121,17 +128,32 @@ function reactNativePlugin(options: ReactNativePluginOptions): rolldown.Plugin[]
   };
 
   const hmrClientImplement = fs.readFileSync(require.resolve('@rollipop/core/hmr-client'), 'utf-8');
+  const hmrClientPath = require.resolve(
+    process.env.ROLLIPOP_HMR_CLIENT_PATH ?? DEFAULT_HMR_CLIENT_PATH,
+    {
+      paths: [root],
+    },
+  );
+
   const replaceHMRClientPlugin: rolldown.Plugin = {
     name: 'rollipop:react-native-replace-hmr-client',
-    transform: {
+    resolveId: {
       filter: {
-        id: exactRegex(
-          require.resolve(process.env.ROLLIPOP_HMR_CLIENT_PATH ?? DEFAULT_HMR_CLIENT_PATH, {
-            paths: [root],
-          }),
-        ),
+        id: /\/HMRClient\.js$/,
       },
-      handler(_code, id) {
+      async handler(id, importer) {
+        const resolvedId = await this.resolve(id, importer, { skipSelf: true });
+
+        if (resolvedId?.id === hmrClientPath) {
+          await this.load({ id: resolvedId.id });
+        }
+      },
+    },
+    load: {
+      filter: {
+        id: exactRegex(hmrClientPath),
+      },
+      handler(id) {
         this.debug(`Replacing HMR client: ${id}`);
         return hmrClientImplement;
       },

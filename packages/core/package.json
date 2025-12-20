@@ -46,6 +46,7 @@
     "@babel/generator": "^7.28.5",
     "@babel/plugin-syntax-typescript": "^7.27.1",
     "@babel/plugin-transform-flow-strip-types": "^7.27.1",
+    "@jridgewell/remapping": "^2.3.5",
     "@node-rs/xxhash": "^1.7.6",
     "@react-native/babel-plugin-codegen": "^0.83.1",
     "@rolldown/pluginutils": "catalog:rolldown",

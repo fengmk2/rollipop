@@ -3467,6 +3467,7 @@ __metadata:
     "@babel/generator": "npm:^7.28.5"
     "@babel/plugin-syntax-typescript": "npm:^7.27.1"
     "@babel/plugin-transform-flow-strip-types": "npm:^7.27.1"
+    "@jridgewell/remapping": "npm:^2.3.5"
     "@node-rs/xxhash": "npm:^1.7.6"
     "@react-native/babel-plugin-codegen": "npm:^0.83.1"
     "@rolldown/pluginutils": "catalog:rolldown"
@@ -3495,11 +3496,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@rollipop/dev-server@workspace:packages/dev-server"
   dependencies:
+    "@babel/code-frame": "npm:^7.27.1"
     "@fastify/middie": "npm:^9.0.3"
     "@react-native-community/cli-server-api": "npm:^20.0.2"
     "@react-native/dev-middleware": "npm:^0.83.1"
     "@rollipop/common": "workspace:*"
     "@rollipop/core": "workspace:*"
+    "@types/babel__code-frame": "npm:^7"
     "@types/ws": "npm:^8"
     ajv: "npm:^8.17.1"
     es-toolkit: "catalog:"
@@ -3507,6 +3510,7 @@ __metadata:
     fastify-plugin: "npm:^5.1.0"
     json-schema-to-ts: "npm:^3.1.1"
     mime: "npm:^4.1.0"
+    source-map: "npm:^0.7.6"
     tsdown: "catalog:"
     typescript: "catalog:"
     url: "npm:^0.11.4"
@@ -3794,7 +3798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.15.5, @swc/core@npm:^1.15.7":
+"@swc/core@npm:^1.15.7":
   version: 1.15.7
   resolution: "@swc/core@npm:1.15.7"
   dependencies:
@@ -3862,6 +3866,13 @@ __metadata:
   dependencies:
     tslib: "npm:^2.4.0"
   checksum: 10c0/b255094f293794c6d2289300c5fbcafbb5532a3aed3a5ffd2f8dc1828e639b88d75f6a376dd8f94347a44813fd7a7149d8463477a9a49525c8b2dcaa38c2d1e8
+  languageName: node
+  linkType: hard
+
+"@types/babel__code-frame@npm:^7":
+  version: 7.0.6
+  resolution: "@types/babel__code-frame@npm:7.0.6"
+  checksum: 10c0/6517ac6ac6b971fb0a8c6f394dc5fc5afbc90d52d85e260dcaba3abdfe97e79b783ac7c6cf05de6494520cafe3b09d934af95c8c6dbc24a62f7846110dd1f838
   languageName: node
   linkType: hard
 
@@ -10384,7 +10395,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "rollipop-monorepo@workspace:."
   dependencies:
-    "@swc/core": "npm:^1.15.5"
     "@types/node": "npm:^22"
     oxfmt: "npm:^0.17.0"
     oxlint: "npm:^1.32.0"
@@ -10887,6 +10897,13 @@ __metadata:
   version: 0.6.1
   resolution: "source-map@npm:0.6.1"
   checksum: 10c0/ab55398007c5e5532957cb0beee2368529618ac0ab372d789806f5718123cc4367d57de3904b4e6a4170eb5a0b0f41373066d02ca0735a0c4d75c7d328d3e011
+  languageName: node
+  linkType: hard
+
+"source-map@npm:^0.7.6":
+  version: 0.7.6
+  resolution: "source-map@npm:0.7.6"
+  checksum: 10c0/59f6f05538539b274ba771d2e9e32f6c65451982510564438e048bc1352f019c6efcdc6dd07909b1968144941c14015c2c7d4369fb7c4d7d53ae769716dcc16c
   languageName: node
   linkType: hard
 

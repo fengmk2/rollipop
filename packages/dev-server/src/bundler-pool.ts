@@ -8,17 +8,12 @@ import {
 } from '@rollipop/core';
 import { invariant } from 'es-toolkit';
 
+import { InMemoryBundle } from './bundle';
 import { logger } from './logger';
 import { ServerOptions } from './types';
 import { getBaseBundleName } from './utils/bundle';
 import { bindReporter } from './utils/config';
 import { taskHandler } from './utils/promise';
-import { replaceSourceMappingURL } from './utils/source-map';
-
-interface BuildResultHolder {
-  bundle?: string;
-  sourceMap?: string;
-}
 
 export interface DevServerOptions {
   host: string;
@@ -47,9 +42,9 @@ export interface BundlerDevEngineEventMap {
 }
 
 export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
-  private readonly buildResultHolder: BuildResultHolder = {};
   private readonly initializeHandle: ReturnType<typeof taskHandler>;
   private readonly _id: string;
+  private bundle: InMemoryBundle | null = null;
   private _devEngine: rolldownExperimental.DevEngine | null = null;
   private _state: 'idle' | 'initializing' | 'ready' = 'idle';
 
@@ -117,11 +112,8 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
           });
         } else {
           const output = errorOrResult.output[0];
-          this.buildResultHolder.bundle = replaceSourceMappingURL(
-            output.code,
-            this.sourceMappingURL,
-          );
-          this.buildResultHolder.sourceMap = output.map?.toString();
+          const sourceMap = output.map?.toString();
+          this.bundle = new InMemoryBundle(output.code, sourceMap, this.sourceMappingURL);
           logger.debug('Build completed', {
             bundlerId: this.id,
             bundleName: output.name,
@@ -142,24 +134,12 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
     await this.ensureInitialized;
 
     const state = await this.devEngine.getBundleState();
-    if (state.hasStaleOutput || this.buildResultHolder.bundle == null) {
+    if (state.hasStaleOutput || this.bundle == null) {
       await this.devEngine.ensureLatestBuildOutput();
     }
-    invariant(this.buildResultHolder.bundle, 'Bundle is not available');
+    invariant(this.bundle, 'Bundle is not available');
 
-    return this.buildResultHolder.bundle;
-  }
-
-  async getSourceMap() {
-    await this.ensureInitialized;
-
-    const state = await this.devEngine.getBundleState();
-    if (state.hasStaleOutput || this.buildResultHolder.sourceMap == null) {
-      await this.devEngine.ensureLatestBuildOutput();
-    }
-    invariant(this.buildResultHolder.sourceMap, 'Source map is not available');
-
-    return this.buildResultHolder.sourceMap;
+    return this.bundle;
   }
 }
 

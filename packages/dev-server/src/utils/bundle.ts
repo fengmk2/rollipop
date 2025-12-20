@@ -1,3 +1,3 @@
 export function getBaseBundleName(name: string) {
-  return name.replace(/\.bundle$/, '');
+  return name.replace(/^\//, '').replace(/\.bundle$/, '');
 }
