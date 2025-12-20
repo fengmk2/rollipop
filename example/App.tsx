@@ -1,73 +1,78 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { createStaticNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import Animated, { type CSSAnimationKeyframes } from 'react-native-reanimated';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Logo from './logo.svg';
 
-console.log('Hello, world!');
+const windowWidth = Dimensions.get('window').width;
+const logoSize = windowWidth * 0.4;
 
-const FLOATING_VIEW_HEIGHT = 64;
+const breathe: CSSAnimationKeyframes = {
+  to: {
+    transform: [{ scale: 1.1 }],
+  },
+};
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
+function HomeScreen() {
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
-    </SafeAreaProvider>
+    <View style={styles.container}>
+      <Animated.View
+        animatedProps={{
+          animationName: breathe,
+          animationDuration: 1000,
+          animationTimingFunction: 'ease-in-out',
+          animationIterationCount: 'infinite',
+          animationDirection: 'alternate',
+        }}
+      >
+        <Logo width={logoSize} height={logoSize} />
+      </Animated.View>
+      <View style={styles.descriptionContainer}>
+        <Text style={styles.title}>Rollipop</Text>
+        <Text style={styles.description}>Modern build toolkit for React Native</Text>
+      </View>
+    </View>
   );
 }
 
-function AppContent() {
-  const [count, setCount] = useState(0);
-  const safeAreaInsets = useSafeAreaInsets();
+const RootStack = createNativeStackNavigator({
+  initialRouteName: 'Home',
+  screenOptions: {
+    headerShown: false,
+  },
+  screens: {
+    Home: HomeScreen,
+  },
+});
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCount((v) => v + 1);
-    }, 1000);
+const Navigation = createStaticNavigation(RootStack);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.floatingView}>
-        <Text style={styles.floatingViewText}>Count: {count}</Text>
-      </View>
-      <NewAppScreen templateFileName="App.tsx" safeAreaInsets={safeAreaInsets} />
-    </View>
-  );
+export function App() {
+  return <Navigation />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    gap: 12,
+    paddingBottom: 36,
   },
-  floatingView: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    elevation: 10,
-    zIndex: 10,
-    width: '100%',
-    height: FLOATING_VIEW_HEIGHT,
-    backgroundColor: '#387ca0',
+  descriptionContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  floatingViewText: {
-    color: '#fff',
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 10,
+    color: '#222',
+  },
+  description: {
+    fontSize: 16,
+    color: '#666',
   },
 });
-
-export default App;

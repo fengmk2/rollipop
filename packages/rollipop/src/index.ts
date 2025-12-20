@@ -47,3 +47,6 @@ export {
   type ServerOptions,
   type DevServer,
 } from '@rollipop/dev-server';
+
+// Re-export `rolldown`
+export type { Plugin } from 'rolldown';
