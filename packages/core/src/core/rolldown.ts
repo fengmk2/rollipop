@@ -97,6 +97,10 @@ export async function resolveRolldownOptions(
   );
 
   const devServerPlugins = context.mode === 'serve' ? [reactRefresh()] : [];
+  const { startMarker: cacheStartMarker, endMarker: cacheEndMarker } = persistCache(
+    { enabled: cache, sourceExtensions },
+    context,
+  );
 
   const statusPreset =
     config.terminal.status === 'progress'
@@ -115,8 +119,8 @@ export async function resolveRolldownOptions(
     resolve: mergedResolveOptions,
     transform: mergedTransformOptions,
     plugins: [
+      cacheStartMarker,
       prelude({ modulePaths: preludePaths }),
-      persistCache({ enabled: cache, sourceExtensions }, context),
       reactNative(config, {
         dev,
         platform,
@@ -132,6 +136,7 @@ export async function resolveRolldownOptions(
       status(statusPreset),
       ...(devServerPlugins ?? []),
       ...(config.plugins ?? []),
+      cacheEndMarker,
     ],
     checks: {
       /**

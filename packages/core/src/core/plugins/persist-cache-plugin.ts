@@ -7,7 +7,6 @@ import { xxhash } from '../../utils/hash';
 import { shim } from './shim';
 
 const CACHE_HIT = Symbol('CACHE_HIT');
-const CACHE_HITS = Symbol('CACHE_HITS');
 
 export interface PersistCachePluginOptions {
   enabled: boolean;
@@ -17,9 +16,9 @@ export interface PersistCachePluginOptions {
 function persistCachePlugin(
   options: PersistCachePluginOptions,
   context: BundlerContext,
-): rolldown.Plugin {
+): { startMarker: rolldown.Plugin; endMarker: rolldown.Plugin } {
   if (!options.enabled) {
-    return shim();
+    return { startMarker: shim(), endMarker: shim() };
   }
 
   const includePattern = new RegExp(
@@ -28,8 +27,8 @@ function persistCachePlugin(
   const excludePattern = /@oxc-project\+runtime/;
   let cacheHits = 0;
 
-  return {
-    name: 'rollipop:persist-cache',
+  const startMarker: rolldown.Plugin = {
+    name: 'rollipop:persist-cache-start',
     buildStart() {
       cacheHits = 0;
     },
@@ -50,10 +49,18 @@ function persistCachePlugin(
 
         if (cache != null) {
           cacheHits++;
-          return { code: cache, moduleType: 'tsx', meta: { [CACHE_HIT]: true } };
+          return {
+            code: cache,
+            moduleType: 'tsx',
+            meta: { [CACHE_HIT]: true },
+          };
         }
       },
     },
+  };
+
+  const endMarker: rolldown.Plugin = {
+    name: 'rollipop:persist-cache-end',
     transform: {
       order: 'post',
       filter: {
@@ -73,6 +80,8 @@ function persistCachePlugin(
       },
     },
   };
+
+  return { startMarker, endMarker };
 }
 
 /**
@@ -113,7 +122,6 @@ persistCachePlugin.enhance = function enhance(plugin: rolldown.Plugin): rolldown
 
 type PersistCachePluginMeta = rolldown.CustomPluginOptions & {
   [CACHE_HIT]: true;
-  [CACHE_HITS]: number;
 };
 
 function isCacheHit(meta: rolldown.CustomPluginOptions): meta is PersistCachePluginMeta {
