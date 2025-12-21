@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/leegeunhyeok/rollipop#readme",
   "scripts": {
-    "prepare": "yarn build",
+    "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
     "test": "vitest --run",
     "build": "tsdown"
