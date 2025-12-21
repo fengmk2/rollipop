@@ -173,7 +173,11 @@ export async function resolveRolldownOptions(
     sourcemap: true,
   };
 
-  const finalOptions = await applyFinalizer(config, inputOptions, outputOptions);
+  const finalOptions = await applyDangerouslyOverrideOptionsFinalizer(
+    config,
+    inputOptions,
+    outputOptions,
+  );
 
   resolveRolldownOptions.cache.set(context.id, finalOptions);
 
@@ -218,13 +222,13 @@ function loadPolyfills(polyfills: Polyfill[]) {
   });
 }
 
-async function applyFinalizer(
+async function applyDangerouslyOverrideOptionsFinalizer(
   config: ResolvedConfig,
   inputOptions: rolldown.InputOptions,
   outputOptions: rolldown.OutputOptions,
 ) {
-  if (typeof config.rolldown === 'function') {
-    const resolvedOptions = await config.rolldown({
+  if (typeof config.dangerously_overrideRolldownOptions === 'function') {
+    const resolvedOptions = await config.dangerously_overrideRolldownOptions({
       input: inputOptions,
       output: outputOptions,
     });
@@ -232,8 +236,8 @@ async function applyFinalizer(
   }
 
   return {
-    input: merge(inputOptions, config.rolldown?.input ?? {}),
-    output: merge(outputOptions, config.rolldown?.output ?? {}),
+    input: merge(inputOptions, config.dangerously_overrideRolldownOptions?.input ?? {}),
+    output: merge(outputOptions, config.dangerously_overrideRolldownOptions?.output ?? {}),
   };
 }
 

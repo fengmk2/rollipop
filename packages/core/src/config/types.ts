@@ -14,7 +14,7 @@ export interface Config {
   terminal?: TerminalConfig;
   reporter?: Reporter;
   plugins?: rolldown.Plugin[];
-  rolldown?:
+  dangerously_overrideRolldownOptions?:
     | RolldownConfig
     | ((config: RolldownConfig) => RolldownConfig)
     | ((config: RolldownConfig) => Promise<RolldownConfig>);
