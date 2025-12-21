@@ -34,10 +34,7 @@ var BaseDevRuntime = DevRuntime;
 class ModuleHotContext {
   acceptCallbacks: { deps: string[]; fn: (moduleExports: Record<string, any>[]) => void }[] = [];
 
-  constructor(
-    private moduleId: string,
-    private devRuntime: InstanceType<typeof DevRuntime>,
-  ) {}
+  constructor(private moduleId: string) {}
 
   get refresh() {
     return globalThis.__ReactRefresh;
@@ -106,7 +103,7 @@ class ReactNativeDevRuntime extends BaseDevRuntime {
   }
 
   createModuleHotContext(moduleId: string) {
-    const hotContext = new ModuleHotContext(moduleId, this);
+    const hotContext = new ModuleHotContext(moduleId);
     if (this.moduleHotContexts.has(moduleId)) {
       this.moduleHotContextsToBeUpdated.set(moduleId, hotContext);
     } else {

@@ -320,6 +320,7 @@ class HMRClient implements HMRClientNativeInterface {
 
 const instance = new HMRClient();
 
+// For compatibility with CommonJS modules
 export default Object.defineProperty(instance, 'default', {
   get: () => instance,
 });
