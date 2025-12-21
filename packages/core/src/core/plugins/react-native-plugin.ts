@@ -10,7 +10,7 @@ import { ResolvedConfig } from '../../config';
 import { DEFAULT_HMR_CLIENT_PATH } from '../../constants';
 import { AssetData, copyAssetsToDestination, resolveScaledAssets } from '../assets';
 import type { BuildMode } from '../types';
-import { persistCache } from './persist-cache-plugin';
+import { PluginUtils } from './utils';
 
 export interface ReactNativePluginOptions {
   platform: string;
@@ -197,9 +197,9 @@ function reactNativePlugin(
   const devServerPlugins = mode === 'serve' ? [replaceHMRClientPlugin] : null;
 
   return [
-    persistCache.enhance(codegenPlugin),
-    persistCache.enhance(stripFlowSyntaxPlugin),
-    persistCache.enhance(blockScopingPlugin),
+    PluginUtils.cacheable(codegenPlugin),
+    PluginUtils.cacheable(stripFlowSyntaxPlugin),
+    PluginUtils.cacheable(blockScopingPlugin),
     assetPlugin,
     ...(devServerPlugins ?? []),
   ];

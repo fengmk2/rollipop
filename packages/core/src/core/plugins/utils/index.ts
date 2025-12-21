@@ -2,28 +2,31 @@ import fs from 'node:fs';
 
 import type * as rolldown from 'rolldown';
 
-import { BundlerContext } from '../../core/types';
-import { xxhash } from '../../utils/hash';
-import { shim } from './shim';
+import { xxhash } from '../../../utils/hash';
+import type { BundlerContext } from '../../types';
 
 const CACHE_HIT = Symbol('CACHE_HIT');
 
-export interface PersistCachePluginOptions {
+export interface WithCacheOptions {
   enabled: boolean;
   sourceExtensions: string[];
+  context: BundlerContext;
 }
 
-function persistCachePlugin(
-  options: PersistCachePluginOptions,
-  context: BundlerContext,
-): { startMarker: rolldown.Plugin; endMarker: rolldown.Plugin } {
-  if (!options.enabled) {
-    return { startMarker: shim(), endMarker: shim() };
+/**
+ * @internal
+ */
+export function withPersistCache(
+  plugins: rolldown.RolldownPluginOption[],
+  options: WithCacheOptions,
+): rolldown.RolldownPluginOption {
+  const { enabled, sourceExtensions, context } = options;
+
+  if (!enabled) {
+    return plugins;
   }
 
-  const includePattern = new RegExp(
-    `\\.(?:${options.sourceExtensions.filter((extension) => extension !== 'json').join('|')})$`,
-  );
+  const includePattern = new RegExp(`\\.(?:${sourceExtensions.join('|')})$`);
   const excludePattern = /@oxc-project\+runtime/;
   let cacheHits = 0;
 
@@ -81,13 +84,26 @@ function persistCachePlugin(
     },
   };
 
-  return { startMarker, endMarker };
+  return [startMarker, ...plugins, endMarker];
+}
+
+type PersistCachePluginMeta = rolldown.CustomPluginOptions & {
+  [CACHE_HIT]: true;
+};
+
+function isCacheHit(meta: rolldown.CustomPluginOptions): meta is PersistCachePluginMeta {
+  return CACHE_HIT in meta;
+}
+
+function getCacheKey(id: string, buildHash: string) {
+  const { mtimeMs } = fs.statSync(id);
+  return xxhash(`${id}${buildHash}${mtimeMs}`);
 }
 
 /**
  * Enhance a plugin to cache the result. (transform hook only)
  */
-persistCachePlugin.enhance = function enhance(plugin: rolldown.Plugin): rolldown.Plugin {
+function cacheable(plugin: rolldown.Plugin) {
   const originalTransform = plugin.transform;
 
   if (typeof originalTransform === 'function') {
@@ -118,19 +134,8 @@ persistCachePlugin.enhance = function enhance(plugin: rolldown.Plugin): rolldown
   }
 
   return plugin;
-};
-
-type PersistCachePluginMeta = rolldown.CustomPluginOptions & {
-  [CACHE_HIT]: true;
-};
-
-function isCacheHit(meta: rolldown.CustomPluginOptions): meta is PersistCachePluginMeta {
-  return CACHE_HIT in meta;
 }
 
-function getCacheKey(id: string, buildHash: string) {
-  const { mtimeMs } = fs.statSync(id);
-  return xxhash(`${id}${buildHash}${mtimeMs}`);
-}
-
-export { persistCachePlugin as persistCache };
+export const PluginUtils = Object.freeze({
+  cacheable,
+});

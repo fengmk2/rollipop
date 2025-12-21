@@ -4,6 +4,7 @@ export type * from './core/types';
 
 // Plugins
 export * as plugins from './core/plugins';
+export { PluginUtils } from './core/plugins/utils';
 
 // Assets
 export * as AssetUtils from './core/assets';

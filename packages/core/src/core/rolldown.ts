@@ -11,7 +11,8 @@ import { statusPresets } from '../common/status-presets';
 import { Polyfill, ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
 import { getGlobalVariables } from '../internal/react-native';
-import { prelude, persistCache, status, reactRefresh, reactNative, json, svg } from './plugins';
+import { prelude, status, reactRefresh, reactNative, json, svg } from './plugins';
+import { withPersistCache } from './plugins/utils';
 import { BuildOptions, BundlerContext } from './types';
 
 const rolldownLogger = new Logger('rolldown');
@@ -97,11 +98,6 @@ export async function resolveRolldownOptions(
   );
 
   const devServerPlugins = context.mode === 'serve' ? [reactRefresh()] : [];
-  const { startMarker: cacheStartMarker, endMarker: cacheEndMarker } = persistCache(
-    { enabled: cache, sourceExtensions },
-    context,
-  );
-
   const statusPreset =
     config.terminal.status === 'progress'
       ? statusPresets.progressBar(
@@ -118,26 +114,27 @@ export async function resolveRolldownOptions(
     treeshake: true,
     resolve: mergedResolveOptions,
     transform: mergedTransformOptions,
-    plugins: [
-      cacheStartMarker,
-      prelude({ modulePaths: preludePaths }),
-      reactNative(config, {
-        dev,
-        platform,
-        mode: context.mode,
-        codegenFilter: codegen.filter,
-        flowFilter: flow.filter,
-        assetsDir: buildOptions.assetsDir,
-        assetExtensions: resolvedAssetExtensions,
-        assetRegistryPath,
-      }),
-      svg({ enabled: config.transformer.svg }),
-      json(),
-      status(statusPreset),
-      ...(devServerPlugins ?? []),
-      ...(config.plugins ?? []),
-      cacheEndMarker,
-    ],
+    plugins: withPersistCache(
+      [
+        prelude({ modulePaths: preludePaths }),
+        reactNative(config, {
+          dev,
+          platform,
+          mode: context.mode,
+          codegenFilter: codegen.filter,
+          flowFilter: flow.filter,
+          assetsDir: buildOptions.assetsDir,
+          assetExtensions: resolvedAssetExtensions,
+          assetRegistryPath,
+        }),
+        svg({ enabled: config.transformer.svg }),
+        json(),
+        status(statusPreset),
+        ...(devServerPlugins ?? []),
+        ...(config.plugins ?? []),
+      ],
+      { enabled: cache, context, sourceExtensions },
+    ),
     checks: {
       /**
        * Disable eval check because react-native uses `eval` to execute code.

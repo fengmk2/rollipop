@@ -1,6 +1,7 @@
 import * as babel from '@babel/core';
-import type { Plugin } from 'rollipop';
+import { type Plugin, PluginUtils } from 'rollipop';
 
+const EXCLUDE_PACKAGES = ['react-native', '@react-native'];
 const REANIMATED_AUTOWORKLETIZATION_KEYWORDS = [
   'worklet',
   'useAnimatedGestureHandler',
@@ -20,15 +21,15 @@ const REANIMATED_AUTOWORKLETIZATION_KEYWORDS = [
   'executeOnUIRuntimeSync',
 ];
 
-const REANIMATED_REGEX = new RegExp(REANIMATED_AUTOWORKLETIZATION_KEYWORDS.join('|'));
-
 export function worklet(): Plugin {
-  return {
+  return PluginUtils.cacheable({
     name: 'worklet',
     transform: {
       filter: {
-        code: REANIMATED_REGEX,
-        id: [/react-native-reanimated/, /react-native-worklets/],
+        id: {
+          exclude: new RegExp(`node_modules/(?:${EXCLUDE_PACKAGES.join('|')})/`),
+        },
+        code: new RegExp(REANIMATED_AUTOWORKLETIZATION_KEYWORDS.join('|')),
       },
       handler(code, id) {
         const result = babel.transformSync(code, {
@@ -55,5 +56,5 @@ export function worklet(): Plugin {
         return { code: result.code, map: result.map };
       },
     },
-  };
+  });
 }

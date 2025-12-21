@@ -25,6 +25,7 @@ export * as cli from './node/cli';
 export {
   defineConfig,
   mergeConfig,
+  PluginUtils,
   type Config,
   type ResolvedConfig,
   type DefaultConfig,
