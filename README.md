@@ -81,6 +81,8 @@ REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"
 
 You can define configuration by creating a `rollipop.config.ts` file in the project root.
 
+[See more](https://github.com/leegeunhyeok/rollipop/blob/main/packages/core/src/config/types.ts)
+
 ```ts
 import { defineConfig } from 'rollipop';
 
