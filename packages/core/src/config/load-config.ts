@@ -15,7 +15,7 @@ export interface LoadConfigOptions {
   context?: Omit<DefineConfigContext, 'defaultConfig'>;
 }
 
-export async function loadConfig(options: LoadConfigOptions) {
+export async function loadConfig(options: LoadConfigOptions = {}) {
   const { cwd = process.cwd(), configFile, context = {} } = options;
 
   const defaultConfig = getDefaultConfig(cwd, context);
