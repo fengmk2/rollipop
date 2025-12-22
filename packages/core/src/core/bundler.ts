@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 
 import { Logo, getCachePath, FileStorage } from '@rollipop/common';
@@ -6,6 +7,7 @@ import * as rolldown from 'rolldown';
 import { dev } from 'rolldown/experimental';
 
 import type { ResolvedConfig } from '../config/defaults';
+import { resolveBuildOptions, ResolvedBuildOptions } from '../utils/build-options';
 import { createId } from '../utils/id';
 import { FileSystemCache } from './cache/file-system-cache';
 import { getOverrideOptionsForDevServer, resolveRolldownOptions } from './rolldown';
@@ -18,7 +20,7 @@ export class Bundler {
     devEngineOptions: DevEngineOptions,
   ) {
     const mode = 'serve';
-    const resolvedBuildOptions = { ...buildOptions, dev: true };
+    const resolvedBuildOptions = resolveBuildOptions(config.root, buildOptions);
     const contextBase = Bundler.createContext(mode, config, resolvedBuildOptions);
     const { input = {}, output = {} } = await resolveRolldownOptions(
       { ...contextBase, mode },
@@ -42,7 +44,7 @@ export class Bundler {
   private static createContext(
     mode: BuildMode,
     config: ResolvedConfig,
-    buildOptions: BuildOptions,
+    buildOptions: ResolvedBuildOptions,
   ) {
     const id = `${mode}:${Bundler.createId(config, buildOptions)}`;
     const cache = new FileSystemCache(path.join(getCachePath(config.root), id));
@@ -58,23 +60,37 @@ export class Bundler {
 
   async build(buildOptions: BuildOptions) {
     const mode = 'build';
-    const contextBase = Bundler.createContext(mode, this.config, buildOptions);
-    const { config } = this;
+    const resolvedBuildOptions = resolveBuildOptions(this.config.root, buildOptions);
+    const contextBase = Bundler.createContext(mode, this.config, resolvedBuildOptions);
+    const sourcemap = resolvedBuildOptions.sourcemap ? true : false;
     const { input, output } = await resolveRolldownOptions(
       { ...contextBase, mode },
-      config,
-      buildOptions,
+      this.config,
+      resolvedBuildOptions,
     );
 
     const rolldownBuildOptions: rolldown.BuildOptions = {
       ...input,
-      output,
-      write: true,
+      output: {
+        ...output,
+        sourcemap,
+      },
+      write: Boolean(resolvedBuildOptions.outfile),
     };
 
     const buildResult = await rolldown.build(rolldownBuildOptions);
     const chunk = buildResult.output[0];
     invariant(chunk, 'Bundled chunk is not found');
+
+    if (resolvedBuildOptions.outfile && chunk.sourcemapFileName && resolvedBuildOptions.sourcemap) {
+      const outputDir = path.dirname(resolvedBuildOptions.outfile);
+      const sourcemapDir = path.dirname(resolvedBuildOptions.sourcemap);
+      const sourcemapFile = path.join(outputDir, chunk.sourcemapFileName);
+      if (!fs.existsSync(sourcemapDir)) {
+        fs.mkdirSync(sourcemapDir, { recursive: true });
+      }
+      fs.renameSync(sourcemapFile, resolvedBuildOptions.sourcemap);
+    }
 
     return chunk;
   }

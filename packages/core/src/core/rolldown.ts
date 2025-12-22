@@ -11,22 +11,12 @@ import { statusPresets } from '../common/status-presets';
 import { Polyfill, ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
 import { getGlobalVariables } from '../internal/react-native';
+import { ResolvedBuildOptions } from '../utils/build-options';
 import { prelude, status, reactRefresh, reactNative, json, svg } from './plugins';
 import { withPersistCache } from './plugins/utils';
-import { BuildOptions, BundlerContext } from './types';
+import { BundlerContext } from './types';
 
 const rolldownLogger = new Logger('rolldown');
-
-export function resolveBuildOptions(buildOptions: BuildOptions) {
-  return merge(
-    {
-      dev: true,
-      cache: true,
-      minify: false,
-    },
-    buildOptions,
-  );
-}
 
 export interface RolldownOptions {
   input?: rolldown.InputOptions;
@@ -38,7 +28,7 @@ resolveRolldownOptions.cache = new Map<string, RolldownOptions>();
 export async function resolveRolldownOptions(
   context: BundlerContext,
   config: ResolvedConfig,
-  buildOptions: BuildOptions,
+  buildOptions: ResolvedBuildOptions,
 ): Promise<RolldownOptions> {
   const cachedOptions = resolveRolldownOptions.cache.get(context.id);
 
@@ -46,7 +36,7 @@ export async function resolveRolldownOptions(
     return cachedOptions;
   }
 
-  const { platform, dev, cache, minify } = resolveBuildOptions(buildOptions);
+  const { platform, dev, cache, minify } = buildOptions;
   const { sourceExtensions, assetExtensions, preferNativePlatform, ...rolldownResolve } =
     config.resolver;
   const { prelude: preludePaths, polyfills } = config.serializer;

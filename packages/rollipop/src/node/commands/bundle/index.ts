@@ -5,7 +5,7 @@ import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
 import { logger } from '../../logger';
 import { parseBoolean } from '../../utils';
 
-export const command = new Command('build')
+export const command = new Command('bundle')
   .description('Build the bundle for the provided JavaScript entry file.')
   .option('--config <string>', 'Path to the CLI configuration file')
   .requiredOption(
@@ -72,6 +72,7 @@ export const command = new Command('build')
       minify: options.minify,
       cache: options.cache,
       outfile: options.bundleOutput,
+      sourcemap: options.sourcemapOutput,
       assetsDir: options.assetsDest,
     });
   });
