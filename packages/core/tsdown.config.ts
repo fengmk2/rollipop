@@ -35,7 +35,7 @@ export default defineConfig([
   },
   {
     ...runtimeConfig,
-    entry: ['src/runtime/hmr-runtime.ts', 'src/runtime/hmr-shims.ts'],
+    entry: 'src/runtime/hmr-runtime.ts',
   },
   {
     ...runtimeConfig,

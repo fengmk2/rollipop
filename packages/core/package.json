@@ -16,7 +16,6 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./hmr-shims": "./dist/hmr-shims.js",
     "./hmr-runtime": "./dist/hmr-runtime.js",
     "./hmr-client": "./dist/hmr-client.cjs",
     "./package.json": "./package.json"

@@ -18,7 +18,7 @@ export interface LoadConfigOptions {
 export async function loadConfig(options: LoadConfigOptions = {}) {
   const { cwd = process.cwd(), configFile, context = {} } = options;
 
-  const defaultConfig = getDefaultConfig(cwd, context);
+  const defaultConfig = getDefaultConfig(cwd);
   const commonOptions: c12.LoadConfigOptions = {
     context: { ...context, defaultConfig },
     rcFile: false,

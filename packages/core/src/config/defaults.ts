@@ -1,7 +1,5 @@
 import fs from 'node:fs';
 
-import { isNotNil } from 'es-toolkit';
-
 import { stripFlowSyntax } from '../common/transformer';
 import {
   DEFAULT_ASSET_EXTENSIONS,
@@ -14,15 +12,10 @@ import { getInitializeCorePath, getPolyfillScriptPaths } from '../internal/react
 import { TerminalReporter } from '../reporter';
 import type { Reporter } from '../types';
 import { resolvePackagePath } from '../utils/node-resolve';
-import type { DefineConfigContext } from './define-config';
 import type { Config, Polyfill } from './types';
 
-export function getDefaultConfig(
-  basePath: string,
-  context: Omit<DefineConfigContext, 'defaultConfig'>,
-) {
+export function getDefaultConfig(basePath: string) {
   const reactNativePath = resolvePackagePath(basePath, 'react-native');
-  const isDevServer = context.command === 'start';
 
   const defaultConfig = {
     root: basePath,
@@ -45,16 +38,13 @@ export function getDefaultConfig(
     },
     serializer: {
       prelude: [getInitializeCorePath(basePath)],
-      polyfills: [
-        ...getPolyfillScriptPaths(reactNativePath).map(
-          (path) =>
-            ({
-              type: 'iife',
-              code: stripFlowSyntax(fs.readFileSync(path, 'utf-8'), path).code,
-            }) satisfies Polyfill,
-        ),
-        isDevServer ? require.resolve('@rollipop/core/hmr-shims') : undefined,
-      ].filter(isNotNil),
+      polyfills: getPolyfillScriptPaths(reactNativePath).map(
+        (path) =>
+          ({
+            type: 'iife',
+            code: stripFlowSyntax(fs.readFileSync(path, 'utf-8'), path).code,
+          }) satisfies Polyfill,
+      ),
     },
     watcher: {
       skipWrite: true,
