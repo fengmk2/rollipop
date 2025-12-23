@@ -1,6 +1,6 @@
 import dedent from 'dedent';
 import { invariant } from 'es-toolkit';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@voidzero-dev/vite-plus/test';
 
 import { testPluginDriver } from '../../../testing/plugin-testing-utils';
 import { reactRefresh } from '../react-refresh-plugin';

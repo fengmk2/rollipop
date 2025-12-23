@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@voidzero-dev/vite-plus/test';
 
 import { mergeConfig } from '../merge-config';
 import type { Config } from '../types';
