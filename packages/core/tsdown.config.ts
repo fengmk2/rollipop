@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { invariant } from 'es-toolkit';
-import { defineConfig, type UserConfig } from 'tsdown';
+import { defineConfig, type UserConfig } from '@voidzero-dev/vite-plus/lib';
 
 const rawPackageJson = fs.readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8');
 const { version } = JSON.parse(rawPackageJson);

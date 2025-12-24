@@ -34,7 +34,7 @@
   "scripts": {
     "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
-    "build": "tsdown"
+    "build": "vite lib"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^14.0.0",
@@ -46,7 +46,7 @@
     "es-toolkit": "catalog:"
   },
   "devDependencies": {
-    "tsdown": "catalog:",
+    "@voidzero-dev/vite-plus": "catalog:",
     "typescript": "catalog:"
   }
 }

@@ -38,7 +38,7 @@
     "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
     "test": "vite test --run",
-    "build": "tsdown"
+    "build": "vite lib"
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
@@ -74,7 +74,6 @@
     "magic-string": "^0.30.21",
     "react-refresh": "^0.18.0",
     "source-map": "^0.7.6",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
