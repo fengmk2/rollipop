@@ -32,11 +32,11 @@
   "scripts": {
     "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest --run",
-    "build": "tsdown"
+    "test": "vite test --run",
+    "build": "vite lib"
   },
   "devDependencies": {
-    "tsdown": "catalog:",
+    "@voidzero-dev/vite-plus": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
