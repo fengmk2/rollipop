@@ -27,7 +27,7 @@ export default function HomePage() {
           </p>
           <div className="mt-6 flex flex-row gap-4">
             <Link
-              href="/docs/get-started/create-project"
+              href="/docs/get-started/quick-start"
               type="button"
               className={cn(
                 buttonVariants({ variant: 'primary' }),
@@ -95,7 +95,7 @@ export default function HomePage() {
             <div className="flex flex-col gap-2">
               <p className="font-semibold text-fd-foreground text-sm">Documentation</p>
               <FooterLink href="/docs/get-started/introduction">Introduction</FooterLink>
-              <FooterLink href="/docs/get-started/create-project">Get Started</FooterLink>
+              <FooterLink href="/docs/get-started/quick-start">Get Started</FooterLink>
             </div>
             <div className="flex flex-col gap-2">
               <p className="font-semibold text-fd-foreground text-sm">Community</p>
