@@ -1,6 +1,5 @@
 ---
-"@rollipop/common": patch
-"@rollipop/core": patch
+"rollipop": patch
 ---
 
 bind plugin context to rollipop custom hooks

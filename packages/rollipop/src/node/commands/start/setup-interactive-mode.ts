@@ -1,7 +1,7 @@
 import readline from 'node:readline';
 import { ReadStream } from 'node:tty';
 
-import { chalk } from '@rollipop/common';
+import chalk from 'chalk';
 import { throttle } from 'es-toolkit';
 
 import { DebuggerOpener } from '../../debugger';

@@ -1,1 +1,1 @@
-# @rollipop/core
+# @rollipop/init

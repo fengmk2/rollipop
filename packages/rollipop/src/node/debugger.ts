@@ -1,7 +1,8 @@
 import { select } from '@inquirer/prompts';
-import { loadSettings, Logger, saveSettings, Settings } from '@rollipop/common';
 import { merge } from 'es-toolkit';
 
+import { Logger } from '../common/logger';
+import { loadSettings, saveSettings, type Settings } from '../core/settings';
 import { logger } from './logger';
 
 export interface PageDescription {

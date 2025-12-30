@@ -1,1 +1,3 @@
-export * from '@rollipop/core/client';
+interface ImportMeta {
+  hot?: import('./dist').HMRContext;
+}

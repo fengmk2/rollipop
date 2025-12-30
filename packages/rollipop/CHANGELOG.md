@@ -6,8 +6,6 @@
 
 - fix yarn workspace
 - Updated dependencies
-  - @rollipop/common@0.1.0-alpha.4
-  - @rollipop/core@0.1.0-alpha.4
 
 ## 0.1.0-alpha.3
 
@@ -15,8 +13,6 @@
 
 - fe6a1db: npm oidc
 - Updated dependencies [fe6a1db]
-  - @rollipop/common@0.1.0-alpha.3
-  - @rollipop/core@0.1.0-alpha.3
 
 ## 0.1.0-alpha.2
 
@@ -29,8 +25,6 @@
 - Updated dependencies [8118bc3]
 - Updated dependencies [5cee54c]
 - Updated dependencies [4768f8f]
-  - @rollipop/core@0.1.0-alpha.2
-  - @rollipop/common@0.1.0-alpha.2
 
 ## 0.1.0-alpha.1
 
@@ -39,9 +33,6 @@
 - 3d72e91: add `config` and `configResolved` for plugins
 - Updated dependencies [e21eeb5]
 - Updated dependencies [3d72e91]
-  - @rollipop/dev-server@0.1.0-alpha.1
-  - @rollipop/core@0.1.0-alpha.1
-  - @rollipop/common@0.1.0-alpha.1
 
 ## 0.1.0-alpha.0
 
@@ -52,6 +43,3 @@
 ### Patch Changes
 
 - Updated dependencies [7a1d9a7]
-  - @rollipop/common@0.1.0-alpha.0
-  - @rollipop/core@0.1.0-alpha.0
-  - @rollipop/dev-server@0.1.0-alpha.0

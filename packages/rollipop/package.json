@@ -24,6 +24,8 @@
         "default": "./dist/runtime.cjs"
       }
     },
+    "./hmr-runtime": "./dist/hmr-runtime.js",
+    "./hmr-client": "./dist/hmr-client.cjs",
     "./client": {
       "types": "./client.d.ts"
     },
@@ -52,15 +54,54 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/generator": "^7.28.5",
+    "@babel/plugin-syntax-typescript": "^7.27.1",
+    "@babel/plugin-transform-flow-strip-types": "^7.27.1",
     "@commander-js/extra-typings": "^14.0.0",
+    "@fastify/middie": "^9.0.3",
     "@inquirer/prompts": "^8.1.0",
-    "@rollipop/common": "workspace:*",
-    "@rollipop/core": "workspace:*",
+    "@jridgewell/remapping": "^2.3.5",
+    "@node-rs/xxhash": "^1.7.6",
+    "@react-native-community/cli-server-api": "^20.0.2",
+    "@react-native/babel-plugin-codegen": "^0.83.1",
+    "@react-native/dev-middleware": "^0.83.1",
+    "@rolldown/pluginutils": "catalog:rolldown",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@swc/core": "^1.15.7",
+    "ajv": "^8.17.1",
+    "babel-plugin-syntax-hermes-parser": "^0.33.0",
+    "c12": "^3.3.3",
+    "chalk": "^5.6.2",
     "commander": "^14.0.2",
-    "es-toolkit": "catalog:"
+    "dayjs": "^1.11.19",
+    "dedent": "^1.7.1",
+    "es-toolkit": "catalog:",
+    "fastify": "^5.6.2",
+    "fastify-plugin": "^5.1.0",
+    "flow-remove-types": "^2.295.0",
+    "gradient-string": "^3.0.0",
+    "hermes-parser": "^0.33.0",
+    "image-size": "^2.0.2",
+    "json-schema-to-ts": "^3.1.1",
+    "mime": "^4.1.0",
+    "rolldown": "catalog:rolldown",
+    "source-map": "^0.7.6",
+    "url": "^0.11.4",
+    "wrap-ansi": "^9.0.2",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@babel/code-frame": "^7.27.1",
+    "@types/babel__code-frame": "^7",
+    "@types/babel__core": "^7",
+    "@types/babel__generator": "^7",
+    "@types/ws": "^8",
+    "magic-string": "^0.30.21",
+    "mitt": "^3.0.1",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

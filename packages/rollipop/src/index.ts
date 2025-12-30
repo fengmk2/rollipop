@@ -1,8 +1,7 @@
-import { resetCache } from '@rollipop/common';
-import { loadConfig } from '@rollipop/core';
-
-import { runBuild } from './run-build';
-import { runServer } from './run-server';
+import { loadConfig } from './config';
+import { resetCache } from './utils/reset-cache';
+import { runBuild } from './utils/run-build';
+import { runServer } from './utils/run-server';
 
 interface Rollipop {
   readonly runBuild: typeof runBuild;
@@ -18,32 +17,34 @@ const Rollipop: Rollipop = Object.freeze({
   resetCache,
 });
 
+// Rollipop namespace
 export { Rollipop };
+
+// Bundler
+export { Bundler } from './core/bundler';
+export type * from './core/types';
+
+// Dev server
+export * from './server';
+
+// Plugins
+export * as plugins from './core/plugins';
+export { PluginUtils } from './core/plugins/utils';
+export type { Plugin, PluginConfig } from './core/plugins/types';
+
+// Assets
+export * as AssetUtils from './core/assets';
+
+// Config
+export * from './config';
+
+// Types
+export type * from './types';
+export type * from './types/hmr';
+
+// CLI
 export * as cli from './node/cli';
 
-// Re-export `@rollipop/core`
-export {
-  defineConfig,
-  mergeConfig,
-  PluginUtils,
-  DEFAULT_HOST,
-  DEFAULT_PORT,
-  TerminalReporter,
-  type Config,
-  type UserConfig,
-  type ResolvedConfig,
-  type DefaultConfig,
-  type ResolverConfig,
-  type TransformerConfig,
-  type SerializerConfig,
-  type WatcherConfig,
-  type ReactNativeConfig,
-  type TerminalConfig,
-  type RolldownConfig,
-  type BuildOptions,
-  type Plugin,
-  type Reporter,
-  type ReportableEvent,
-  type ServerOptions,
-  type DevServer,
-} from '@rollipop/core';
+// Re-export `rolldown`
+export * as rolldown from 'rolldown';
+export * as rolldownExperimental from 'rolldown/experimental';

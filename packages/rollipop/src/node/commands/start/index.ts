@@ -1,8 +1,8 @@
 import { Command } from '@commander-js/extra-typings';
-import { DEFAULT_HOST, DEFAULT_PORT } from '@rollipop/core';
 import { noop } from 'es-toolkit';
 
 import { Rollipop } from '../../../index';
+import { DEFAULT_HOST, DEFAULT_PORT } from '../../../server/constants';
 import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
 import { DebuggerOpener } from '../../debugger';
 import { logger } from '../../logger';

@@ -1,3 +1,3 @@
-import { Logger } from '@rollipop/common';
+import { Logger } from '../common/logger';
 
 export const logger = new Logger('cli');
