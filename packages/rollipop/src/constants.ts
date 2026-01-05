@@ -10,11 +10,9 @@ export const ROLLIPOP_VERSION = globalThis.__ROLLIPOP_VERSION__;
 export const GLOBAL_IDENTIFIER = '__ROLLIPOP_GLOBAL__';
 
 /**
- * Unlike the Metro bundler configuration, this prioritizes resolving module(ESM) fields first.
- *
  * @see {@link https://github.com/facebook/metro/blob/0.81.x/docs/Configuration.md#resolvermainfields}
  */
-export const DEFAULT_RESOLVER_MAIN_FIELDS = ['react-native', 'module', 'main'];
+export const DEFAULT_RESOLVER_MAIN_FIELDS = ['react-native', 'browser', 'main'];
 export const DEFAULT_RESOLVER_CONDITION_NAMES = ['react-native', 'import', 'require'];
 
 /**
