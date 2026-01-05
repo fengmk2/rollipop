@@ -171,7 +171,7 @@ export interface TerminalConfig {
    *
    * Defaults to: `process.stderr.isTTY ? 'progress' : 'compat'`
    */
-  status?: 'compat' | 'progress';
+  status?: 'none' | 'compat' | 'progress';
 }
 
 export interface RolldownConfig {

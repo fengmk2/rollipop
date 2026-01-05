@@ -13,6 +13,23 @@ enum ProgressFlags {
   WATCH_CHANGE = 0b0010,
 }
 
+function none(reporter: Reporter): StatusPluginOptions {
+  return withReporter(reporter);
+}
+
+function compat(reporter: Reporter): StatusPluginOptions {
+  return withReporter(reporter, {
+    onStart() {
+      logger.info('Build started...');
+    },
+    onEnd({ totalModules, duration }) {
+      const time = chalk.blue(`${duration.toFixed(2)}ms`);
+      const modules = chalk.blue(`(${totalModules} modules)`);
+      logger.info(`Build finished in ${time} ${modules}`);
+    },
+  });
+}
+
 function progressBar(
   reporter: Reporter,
   context: BundlerContext,
@@ -72,28 +89,15 @@ function progressBar(
   });
 }
 
-function compat(reporter: Reporter): StatusPluginOptions {
-  return withReporter(reporter, {
-    onStart() {
-      logger.info('Build started...');
-    },
-    onEnd({ totalModules, duration }) {
-      const time = chalk.blue(`${duration.toFixed(2)}ms`);
-      const modules = chalk.blue(`(${totalModules} modules)`);
-      logger.info(`Build finished in ${time} ${modules}`);
-    },
-  });
-}
-
 function withReporter(
   reporter: Reporter,
-  statusPluginOptions: StatusPluginOptions,
+  statusPluginOptions?: StatusPluginOptions,
 ): StatusPluginOptions {
   return {
     ...statusPluginOptions,
     onStart() {
       reporter.update({ type: 'bundle_build_started' });
-      statusPluginOptions.onStart?.();
+      statusPluginOptions?.onStart?.();
     },
     onEnd(result) {
       if (result.error) {
@@ -101,17 +105,17 @@ function withReporter(
       } else {
         reporter.update({ type: 'bundle_build_done' });
       }
-      statusPluginOptions.onEnd?.(result);
+      statusPluginOptions?.onEnd?.(result);
     },
     onTransform(result) {
       reporter.update({ type: 'transform', ...result });
-      statusPluginOptions.onTransform?.(result);
+      statusPluginOptions?.onTransform?.(result);
     },
     onWatchChange(id) {
       reporter.update({ type: 'watch_change', id });
-      statusPluginOptions.onWatchChange?.(id);
+      statusPluginOptions?.onWatchChange?.(id);
     },
   };
 }
 
-export const statusPresets = { progressBar, compat };
+export const statusPresets = { none, compat, progressBar };

@@ -3,15 +3,13 @@ import fs from 'node:fs';
 import { Config, transform } from '@svgr/core';
 import type * as rolldown from 'rolldown';
 
-import { shim } from './shim';
-
 export interface SvgPluginOptions {
   enabled: boolean;
 }
 
-function svgPlugin(options: SvgPluginOptions): rolldown.Plugin {
+function svgPlugin(options: SvgPluginOptions): rolldown.Plugin | null {
   if (!options.enabled) {
-    return shim();
+    return null;
   }
 
   return {

@@ -12,7 +12,7 @@ import {
 import { getInitializeCorePath, getPolyfillScriptPaths } from '../internal/react-native';
 import type { ReportableEvent, Reporter } from '../types';
 import { resolvePackagePath } from '../utils/node-resolve';
-import type { Config, Polyfill } from './types';
+import type { Config, Polyfill, TerminalConfig } from './types';
 
 export function getDefaultConfig(basePath: string) {
   const reactNativePath = resolvePackagePath(basePath, 'react-native');
@@ -64,7 +64,7 @@ export function getDefaultConfig(basePath: string) {
       assetRegistryPath: DEFAULT_ASSET_REGISTRY_PATH,
     },
     terminal: {
-      status: process.stderr.isTTY ? 'progress' : 'compat',
+      status: (process.stderr.isTTY ? 'progress' : 'compat') as TerminalConfig['status'],
     },
     reporter: new TerminalReporter() as Reporter,
   } satisfies Config;

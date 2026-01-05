@@ -87,14 +87,23 @@ export async function resolveRolldownOptions(
   );
 
   const devServerPlugins = context.mode === 'serve' ? [reactRefresh()] : [];
-  const statusPreset =
-    config.terminal.status === 'progress'
-      ? statusPresets.progressBar(
+  const statusOptions = (() => {
+    switch (config.terminal.status) {
+      case 'compat':
+        return statusPresets.compat(config.reporter);
+
+      case 'progress':
+        return statusPresets.progressBar(
           config.reporter,
           context,
           `[${platform}, ${buildOptions.dev ? 'dev' : 'prod'}]`,
-        )
-      : statusPresets.compat(config.reporter);
+        );
+
+      case 'none':
+      default:
+        return statusPresets.none(config.reporter);
+    }
+  })();
 
   const inputOptions: rolldown.InputOptions = {
     cwd: config.root,
@@ -120,7 +129,7 @@ export async function resolveRolldownOptions(
         swc({ rules: swcConfig?.rules }),
         svg({ enabled: config.transformer.svg }),
         json(),
-        status(statusPreset),
+        status(statusOptions),
         ...(devServerPlugins ?? []),
         ...(config.plugins ?? []),
       ],

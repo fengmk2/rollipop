@@ -2,17 +2,15 @@ import fs from 'node:fs';
 
 import * as rolldown from 'rolldown';
 
-import { shim } from './shim';
-
 const IS_ENTRY = Symbol('IS_ENTRY');
 
 export interface PreludePluginOptions {
   modulePaths: string[];
 }
 
-function preludePlugin(options: PreludePluginOptions): rolldown.Plugin {
+function preludePlugin(options: PreludePluginOptions): rolldown.Plugin | null {
   if (options.modulePaths.length === 0) {
-    return shim();
+    return null;
   }
 
   const preludeImportStatements = options.modulePaths

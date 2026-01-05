@@ -21,11 +21,10 @@ export interface StatusPluginEndResult {
   error: Error | undefined;
 }
 
-function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin {
+function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin | null {
   let totalModules = options?.initialTotalModules ?? 0;
   let startedAt = 0;
   let transformedModules = 0;
-
   let unknownTotalModules = totalModules === 0;
 
   return {
