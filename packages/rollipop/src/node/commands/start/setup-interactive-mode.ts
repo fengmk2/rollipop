@@ -4,8 +4,9 @@ import { ReadStream } from 'node:tty';
 import chalk from 'chalk';
 import { throttle } from 'es-toolkit';
 
-import { DebuggerOpener } from '../../debugger';
+import type { DevServer } from '../../../server';
 import { logger } from '../../logger';
+import { DebuggerOpener } from './debugger';
 
 const CTRL_C = '\x03';
 const CTRL_D = '\x04';
@@ -37,13 +38,12 @@ export interface InteractiveCommand {
   handler?: (broadcast: Broadcast) => void;
 }
 
-export interface SetupInteractiveModeOptions {
-  broadcast: Broadcast;
-  debuggerOpener: DebuggerOpener;
-}
-
-export function setupInteractiveMode(options: SetupInteractiveModeOptions) {
-  const { broadcast, debuggerOpener } = options;
+export function setupInteractiveMode(devServer: DevServer) {
+  if (!devServer.instance.server.listening) {
+    throw new Error(
+      'Dev server is not listening. Please call `devServer.instance.listen()` first.',
+    );
+  }
 
   if (!(process.stdin.isTTY && process.stdin instanceof ReadStream)) {
     logger.warn('Interactive mode is not supported in non-interactive environments');
@@ -52,6 +52,17 @@ export function setupInteractiveMode(options: SetupInteractiveModeOptions) {
 
   readline.emitKeypressEvents(process.stdin);
   process.stdin.setRawMode(true);
+
+  const debuggerOpener = new DebuggerOpener(
+    devServer.config.root,
+    devServer.instance.listeningOrigin,
+  );
+
+  devServer.on('device.connected', () => {
+    void debuggerOpener.autoOpen().catch(() => {
+      logger.error('Failed to open debugger');
+    });
+  });
 
   process.stdin.on('keypress', (_, key: readline.Key) => {
     const { ctrl, shift } = key;
@@ -81,7 +92,7 @@ export function setupInteractiveMode(options: SetupInteractiveModeOptions) {
     switch (sequence) {
       case 'r':
       case 'd':
-        SUPPORTED_COMMANDS[sequence].handler(broadcast);
+        SUPPORTED_COMMANDS[sequence].handler(devServer.message.broadcast);
         break;
 
       case 'j':

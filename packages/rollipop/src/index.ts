@@ -43,6 +43,7 @@ export type * from './types/hmr';
 
 // CLI
 export * as cli from './node/cli';
+export * from './node/cli-utils';
 
 // Re-export `rolldown`
 export * as rolldown from 'rolldown';

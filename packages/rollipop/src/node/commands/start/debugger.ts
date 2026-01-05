@@ -1,9 +1,9 @@
 import { select } from '@inquirer/prompts';
 import { merge } from 'es-toolkit';
 
-import { Logger } from '../common/logger';
-import { loadSettings, saveSettings, type Settings } from '../core/settings';
-import { logger } from './logger';
+import { Logger } from '../../../common/logger';
+import { loadSettings, saveSettings, type Settings } from '../../../core/settings';
+import { logger } from '../../logger';
 
 export interface PageDescription {
   id: string;
@@ -16,6 +16,7 @@ export class DebuggerOpener {
 
   private _prompting = false;
   private settings: Settings;
+  private autoOpened = false;
 
   static setAutoOpenEnabled(projectRoot: string, enabled: boolean) {
     saveSettings(projectRoot, { devtools: { autoOpen: enabled } });
@@ -40,6 +41,15 @@ export class DebuggerOpener {
       logger.error(`Failed to open debugger for ${target.title}`);
       logger.debug('Reason', error);
     }
+  }
+
+  async autoOpen() {
+    if (this.autoOpened) {
+      return;
+    }
+
+    this.autoOpened = true;
+    await this.open();
   }
 
   async open() {

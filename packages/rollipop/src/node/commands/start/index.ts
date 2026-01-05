@@ -4,7 +4,6 @@ import { noop } from 'es-toolkit';
 import { Rollipop } from '../../../index';
 import { DEFAULT_HOST, DEFAULT_PORT } from '../../../server/constants';
 import { UNSUPPORTED_OPTION_DESCRIPTION } from '../../constants';
-import { DebuggerOpener } from '../../debugger';
 import { logger } from '../../logger';
 import { setupInteractiveMode } from './setup-interactive-mode';
 
@@ -50,29 +49,15 @@ export const command = new Command('start')
       config.reporter = { update: noop };
     }
 
-    let debuggerOpened = false;
     const server = await Rollipop.runServer(config, {
       port: options.port,
       host: options.host,
       https: options.https,
       key: options.key,
       cert: options.cert,
-      onDeviceConnected: () => {
-        if (debuggerOpened === false && debuggerOpener.isAutoOpenEnabled()) {
-          debuggerOpener.open().catch((error) => {
-            logger.error('Failed to open debugger', { error });
-          });
-          debuggerOpened = true;
-        }
-      },
     });
 
-    const debuggerOpener = new DebuggerOpener(cwd, server.instance.listeningOrigin);
-
     if (options.interactive) {
-      setupInteractiveMode({
-        broadcast: (message, params) => server.message.broadcast(message, params),
-        debuggerOpener,
-      });
+      setupInteractiveMode(server);
     }
   });

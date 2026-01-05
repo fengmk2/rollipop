@@ -4,9 +4,11 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import type * as ws from 'ws';
+import { Emitter } from 'mitt';
 // Extend Fastify instance type with `@fastify/middie`.
 import '@fastify/middie';
+import type * as ws from 'ws';
+
 import type { ResolvedConfig } from '../config';
 import type { WebSocketClient } from './wss/server';
 
@@ -16,11 +18,14 @@ export interface ServerOptions {
   https?: boolean;
   key?: string;
   cert?: string;
-  onDeviceConnected?: (client: WebSocketClient) => void;
-  onDeviceMessage?: (client: WebSocketClient, data: ws.RawData) => void;
-  onDeviceConnectionError?: (client: WebSocketClient, error: Error) => void;
-  onDeviceDisconnected?: (client: WebSocketClient) => void;
 }
+
+export type DevServerEvents = {
+  'device.connected': { client: WebSocketClient };
+  'device.message': { client: WebSocketClient; data: ws.RawData };
+  'device.error': { client: WebSocketClient; error: Error };
+  'device.disconnected': { client: WebSocketClient };
+};
 
 export interface Middlewares {
   /**
@@ -31,7 +36,7 @@ export interface Middlewares {
   use: FastifyInstance['use'];
 }
 
-export interface DevServer {
+export interface DevServer extends Emitter<DevServerEvents> {
   /**
    * Resolved Rollipop config.
    */

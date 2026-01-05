@@ -3,6 +3,7 @@ import url from 'url';
 import { createDevServerMiddleware } from '@react-native-community/cli-server-api';
 import { createDevMiddleware } from '@react-native/dev-middleware';
 import Fastify from 'fastify';
+import mitt from 'mitt';
 import type * as ws from 'ws';
 
 import type { ResolvedConfig } from '../config';
@@ -17,7 +18,7 @@ import { DevServerLogger, logger } from './logger';
 import { serveAssets } from './middlewares/serve-assets';
 import { serveBundle } from './middlewares/serve-bundle';
 import { symbolicate } from './middlewares/symbolicate';
-import type { DevServer, ServerOptions } from './types';
+import type { DevServer, DevServerEvents, ServerOptions } from './types';
 import { HMRServer } from './wss/hmr-server';
 import { getWebSocketUpgradeHandler } from './wss/server';
 
@@ -26,15 +27,7 @@ export async function createDevServer(
   options?: ServerOptions,
 ): Promise<DevServer> {
   const projectRoot = config.root;
-  const {
-    port = DEFAULT_PORT,
-    host = DEFAULT_HOST,
-    https = false,
-    onDeviceConnected,
-    onDeviceMessage,
-    onDeviceConnectionError,
-    onDeviceDisconnected,
-  } = options ?? {};
+  const { port = DEFAULT_PORT, host = DEFAULT_HOST, https = false } = options ?? {};
 
   if (https) {
     throw new Error('HTTPS is not supported yet');
@@ -43,6 +36,7 @@ export async function createDevServer(
   const serverBaseUrl = url.format({ protocol: https ? 'https' : 'http', hostname: host, port });
   await assertDevServerStatus({ devServerUrl: serverBaseUrl, projectRoot, port });
 
+  const emitter = mitt<DevServerEvents>();
   const fastify = Fastify({
     loggerInstance: new DevServerLogger(),
     disableRequestLogging: true,
@@ -89,14 +83,15 @@ export async function createDevServer(
       config.reporter.update(event);
     },
   })
-    .on('connection', (client) => onDeviceConnected?.(client))
-    .on('message', (client, data) => onDeviceMessage?.(client, data))
-    .on('error', (client, error) => onDeviceConnectionError?.(client, error))
-    .on('close', (client) => onDeviceDisconnected?.(client));
+    .on('connection', (client) => emitter.emit('device.connected', { client }))
+    .on('message', (client, data) => emitter.emit('device.message', { client, data }))
+    .on('error', (client, error) => emitter.emit('device.error', { client, error }))
+    .on('close', (client) => emitter.emit('device.disconnected', { client }));
 
   await fastify.register(import('@fastify/middie'));
 
   const devServer: DevServer = {
+    ...emitter,
     config,
     instance: fastify,
     middlewares: { use: fastify.use.bind(fastify) },
