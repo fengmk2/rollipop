@@ -1,12 +1,42 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import * as swc from '@swc/core';
 import { invariant } from 'es-toolkit';
+import type { RolldownPluginOption } from 'rolldown';
 import { defineConfig, type UserConfig } from 'tsdown';
 
 const rawPackageJson = fs.readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8');
 const { version } = JSON.parse(rawPackageJson);
 invariant(version, 'could not find version in package.json');
+
+const transformToEs5: RolldownPluginOption = {
+  name: 'transform-to-es5',
+  transform(code, id) {
+    const result = swc.transformSync(code, {
+      filename: id,
+      configFile: false,
+      swcrc: false,
+      sourceMaps: false,
+      inputSourceMap: false,
+      jsc: {
+        target: 'es5',
+        parser: {
+          syntax: 'typescript',
+        },
+        keepClassNames: true,
+        loose: false,
+        assumptions: {
+          setPublicClassFields: true,
+          privateFieldsAsProperties: true,
+        },
+      },
+      isModule: true,
+    });
+
+    return { code: result.code, map: result.map };
+  },
+};
 
 const runtimeConfig: UserConfig = {
   outDir: 'dist',
@@ -18,6 +48,7 @@ const runtimeConfig: UserConfig = {
   fixedExtension: false,
   treeshake: false,
   logLevel: 'error',
+  plugins: [transformToEs5],
 };
 
 export default defineConfig([
