@@ -15,3 +15,6 @@ export function run(argv: string[]) {
 
   cli.parse(argv);
 }
+
+export * from './commands/start/setup-interactive-mode';
+export * from './debugger';
