@@ -21,9 +21,13 @@ function filterTransformAffectedOptions(buildOptions: BuildOptions) {
 }
 
 function filterTransformAffectedConfig(config: ResolvedConfig) {
-  const { transformer, plugins = [] } = config;
-  return {
+  const { transformer, serializer, reactNative, devMode, plugins = [] } = config;
+  return [
     transformer,
-    plugins: plugins.map((plugin, index) => `${plugin.name}#${index}`),
-  };
+    serializer.polyfills,
+    serializer.prelude,
+    reactNative.assetRegistryPath,
+    devMode,
+    plugins.map((plugin, index) => `${plugin.name}#${index}`),
+  ];
 }
