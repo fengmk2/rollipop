@@ -37,6 +37,10 @@ export interface Config {
    */
   reactNative?: ReactNativeConfig;
   /**
+   * Dev mode specific configuration. (for dev server)
+   */
+  devMode?: DevModeConfig;
+  /**
    * Terminal configuration.
    */
   terminal?: TerminalConfig;
@@ -153,6 +157,30 @@ export type PolyfillWithPath = { type: PolyfillType; path: string };
 export type PolyfillType = 'plain' | 'iife';
 
 export type WatcherConfig = DevWatchOptions;
+
+export interface DevModeConfig {
+  /**
+   * Hot Module Replacement configurations.
+   * 
+   * Defaults to `true`
+   */
+  hmr?: boolean | HmrConfig;
+}
+
+export interface HmrConfig {
+  /**
+   * Source code of the HMR runtime implementation.
+   *
+   * Defaults to: using `rollipop/hmr-runtime` as a default implementation.
+   */
+  runtimeImplement?: string;
+  /**
+   * Source code of the HMR client implementation.
+   * 
+   * Defaults to: using `rollipop/hmr-client` as a default implementation.
+   */
+  clientImplement?: string;
+}
 
 export interface ReactNativeConfig {
   /**

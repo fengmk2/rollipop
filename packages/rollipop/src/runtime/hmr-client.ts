@@ -163,7 +163,10 @@ class HMRClient implements HMRClientNativeInterface {
       this.handleClose(event);
     });
 
-    globalThis.__rolldown_runtime__.setup(socket, origin);
+    // `__rolldown_runtime__` can be undefined when HMR is disabled.
+    if (globalThis.__rolldown_runtime__ != null) {
+      globalThis.__rolldown_runtime__.setup(socket, origin);
+    }
 
     this.enabled = isEnabled;
   }

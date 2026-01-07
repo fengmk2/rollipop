@@ -64,6 +64,9 @@ export function getDefaultConfig(basePath: string) {
       },
       assetRegistryPath: DEFAULT_ASSET_REGISTRY_PATH,
     },
+    devMode: {
+      hmr: true,
+    },
     terminal: {
       status: (process.stderr.isTTY ? 'progress' : 'compat') as TerminalConfig['status'],
     },

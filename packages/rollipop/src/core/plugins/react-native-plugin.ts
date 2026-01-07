@@ -1,11 +1,10 @@
-import fs from 'node:fs';
-
 import { exactRegex, id, include, type TopLevelFilterExpression } from '@rolldown/pluginutils';
 import type * as rolldown from 'rolldown';
 
 import { stripFlowSyntax, generateSourceFromAst } from '../../common/transformer';
 import { ResolvedConfig } from '../../config';
 import { DEFAULT_HMR_CLIENT_PATH } from '../../constants';
+import { getDefaultRuntimeImplements, resolveHmrConfig } from '../../utils/config';
 import {
   AssetData,
   copyAssetsToDestination,
@@ -121,7 +120,8 @@ function reactNativePlugin(
     },
   };
 
-  const hmrClientImplement = fs.readFileSync(require.resolve('rollipop/hmr-client'), 'utf-8');
+  const defaultRuntimeImplements = getDefaultRuntimeImplements();
+  const hmrConfig = resolveHmrConfig(config);
   const hmrClientPath = require.resolve(
     process.env.ROLLIPOP_HMR_CLIENT_PATH ?? DEFAULT_HMR_CLIENT_PATH,
     {
@@ -145,7 +145,7 @@ function reactNativePlugin(
       filter: [include(id(exactRegex(hmrClientPath)))],
       handler(id) {
         this.debug(`Replacing HMR client: ${id}`);
-        return hmrClientImplement;
+        return hmrConfig?.clientImplement ?? defaultRuntimeImplements.clientImplement;
       },
     },
   };

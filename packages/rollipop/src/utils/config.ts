@@ -1,6 +1,7 @@
 import EventEmitter from 'node:events';
+import fs from 'node:fs';
 
-import type { ResolvedConfig } from '../config';
+import type { HmrConfig, ResolvedConfig } from '../config';
 import type { BundlerDevEngineEventMap } from '../server/bundler-pool';
 import type { Reporter } from '../types';
 
@@ -39,4 +40,35 @@ export function bindReporter(
   config.reporter = reporter;
 
   return config;
+}
+
+type ResolvedHmrConfig = Required<HmrConfig>;
+
+export function resolveHmrConfig(config: ResolvedConfig): ResolvedHmrConfig | null {
+  if (config.devMode?.hmr == null) {
+    return null;
+  }
+
+  const defaultRuntimeImplements = getDefaultRuntimeImplements();
+  if (typeof config.devMode?.hmr === 'boolean') {
+    return config.devMode.hmr ? defaultRuntimeImplements : null;
+  }
+
+  const {
+    runtimeImplement = defaultRuntimeImplements.runtimeImplement,
+    clientImplement = defaultRuntimeImplements.clientImplement,
+  } = config.devMode.hmr;
+
+  return { runtimeImplement, clientImplement };
+}
+
+getDefaultRuntimeImplements.cache = null as ResolvedHmrConfig | null;
+export function getDefaultRuntimeImplements(): ResolvedHmrConfig {
+  if (getDefaultRuntimeImplements.cache == null) {
+    getDefaultRuntimeImplements.cache = {
+      runtimeImplement: fs.readFileSync(require.resolve('rollipop/hmr-runtime'), 'utf-8'),
+      clientImplement: fs.readFileSync(require.resolve('rollipop/hmr-client'), 'utf-8'),
+    };
+  }
+  return getDefaultRuntimeImplements.cache;
 }

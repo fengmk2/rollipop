@@ -55,6 +55,9 @@ export function createTestConfig(basePath: string): ResolvedConfig {
       },
       assetRegistryPath: DEFAULT_ASSET_REGISTRY_PATH,
     },
+    devMode: {
+      hmr: true,
+    },
     terminal: {
       status: process.stderr.isTTY ? 'progress' : 'compat',
     },

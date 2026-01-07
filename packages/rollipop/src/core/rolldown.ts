@@ -7,10 +7,11 @@ import type { TransformOptions } from 'rolldown/experimental';
 import { asLiteral, asIdentifier, iife, nodeEnvironment } from '../common/code';
 import { isDebugEnabled } from '../common/debug';
 import { statusPresets } from '../common/status-presets';
-import { Polyfill, ResolvedConfig } from '../config';
+import { Polyfill, type ResolvedConfig } from '../config';
 import { GLOBAL_IDENTIFIER } from '../constants';
 import { getGlobalVariables } from '../internal/react-native';
 import { ResolvedBuildOptions } from '../utils/build-options';
+import { resolveHmrConfig } from '../utils/config';
 import { prelude, status, reactRefresh, reactNative, json, svg, babel, swc } from './plugins';
 import { printPluginLog } from './plugins/context';
 import { withPersistCache } from './plugins/utils/persist-cache';
@@ -230,8 +231,8 @@ async function applyDangerouslyOverrideOptionsFinalizer(
   };
 }
 
-export function getOverrideOptionsForDevServer() {
-  const hotRuntimeImplement = fs.readFileSync(require.resolve('rollipop/hmr-runtime'), 'utf-8');
+export function getOverrideOptionsForDevServer(config: ResolvedConfig) {
+  const hmrConfig = resolveHmrConfig(config);
 
   const input: rolldown.InputOptions = {
     transform: {
@@ -240,9 +241,7 @@ export function getOverrideOptionsForDevServer() {
       },
     },
     experimental: {
-      devMode: {
-        implement: hotRuntimeImplement,
-      },
+      devMode: hmrConfig ? { implement: hmrConfig.runtimeImplement } : false,
       incrementalBuild: true,
       strictExecutionOrder: true,
       nativeMagicString: true,
