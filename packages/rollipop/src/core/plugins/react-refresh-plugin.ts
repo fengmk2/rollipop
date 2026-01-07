@@ -103,7 +103,7 @@ if (import.meta.hot) {
   import.meta.hot.accept((nextExports) => {
     if (!nextExports) return;
     if (import.meta.hot.refreshUtils.isReactRefreshBoundary(nextExports)) {
-      import.meta.hot.refresh.performReactRefresh();
+      import.meta.hot.refreshUtils.enqueueUpdate();
     }
   });
 }`);
