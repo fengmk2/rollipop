@@ -117,7 +117,6 @@ export class BundlerDevEngine extends EventEmitter<BundlerDevEngineEventMap> {
         }
       },
       rebuildStrategy: 'auto',
-      watch: this.config.watcher,
     });
 
     await devEngine.run();

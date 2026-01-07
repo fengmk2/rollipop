@@ -40,7 +40,7 @@ export interface BuildOptions {
   assetsDir?: string;
 }
 
-export type DevEngineOptions = DevOptions & {
+export type DevEngineOptions = Omit<DevOptions, 'watch'> & {
   /**
    * The host to run the dev server on.
    */
