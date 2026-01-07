@@ -1,28 +1,17 @@
 import { describe, it, expect } from 'vitest';
 
+import { createTestConfig } from '../../testing/config';
 import { createId } from '../id';
 
 describe('createId', () => {
   const BUILD_OPTIONS = { platform: 'ios', dev: true } as const;
 
   it('should return the same id', () => {
-    const configA: any = {
-      transformer: {
-        define: {
-          __DEV__: 'true',
-        },
-      },
-      plugins: [{ name: 'plugin-a' }, { name: 'plugin-b' }],
-    };
+    const configA = createTestConfig('/root');
+    const configB = createTestConfig('/root');
 
-    const configB: any = {
-      transformer: {
-        define: {
-          __DEV__: 'true',
-        },
-      },
-      plugins: [{ name: 'plugin-a' }, { name: 'plugin-b' }],
-    };
+    configA.plugins = [{ name: 'plugin-a' }, { name: 'plugin-b' }];
+    configB.plugins = [{ name: 'plugin-a' }, { name: 'plugin-b' }];
 
     const idA = createId(configA, BUILD_OPTIONS);
     const idB = createId(configB, BUILD_OPTIONS);
@@ -31,32 +20,13 @@ describe('createId', () => {
   });
 
   it('should return different id', () => {
-    const configA: any = {
-      transformer: {
-        define: {
-          __DEV__: 'true',
-        },
-      },
-      plugins: [{ name: 'plugin-a' }, { name: 'plugin-b' }],
-    };
+    const configA = createTestConfig('/root');
+    const configB = createTestConfig('/root');
+    const configC = createTestConfig('/root');
 
-    const configB: any = {
-      transformer: {
-        define: {
-          __DEV__: 'true',
-        },
-      },
-      plugins: [{ name: 'plugin-b' }, { name: 'plugin-a' }], // different order
-    };
-
-    const configC: any = {
-      transformer: {
-        define: {
-          __DEV__: 'false', // different value
-        },
-      },
-      plugins: [{ name: 'plugin-a' }, { name: 'plugin-b' }],
-    };
+    configA.plugins = [{ name: 'plugin-a' }, { name: 'plugin-b' }];
+    configB.plugins = [{ name: 'plugin-b' }, { name: 'plugin-a' }]; // different order
+    configB.transformer.define = { __DEV__: 'false' }; // different value
 
     const idA = createId(configA, BUILD_OPTIONS);
     const idB = createId(configB, BUILD_OPTIONS);
@@ -66,9 +36,9 @@ describe('createId', () => {
     expect(idA === idC).toBe(false);
     expect([idA, idB, idC]).toMatchInlineSnapshot(`
       [
-        "a51f71b1ebbc0ec402cca39fca1ee0fb",
-        "9fb48e2c0a3590d871b1bc03b7c06b87",
-        "024e36042c5e06b9b33d43a560934b59",
+        "d4ee99c71b371dc9609da5a024f2b59c",
+        "49549a8b5210759a070f87f274792d93",
+        "125d6bc285cfc2596ea24f39a2220c64",
       ]
     `);
   });
