@@ -4,7 +4,6 @@ export interface StatusPluginOptions {
   initialTotalModules?: number;
   onStart?: () => void;
   onEnd?: (result: StatusPluginEndResult) => void;
-  onResolve?: (id: string) => void;
   onTransform?: (result: StatusPluginTransformResult) => void;
   onWatchChange?: (id: string) => void;
 }
@@ -35,19 +34,15 @@ function statusPlugin(options?: StatusPluginOptions): rolldown.Plugin | null {
       options?.onStart?.();
     },
     buildEnd(error) {
-      totalModules = transformedModules;
+      if (transformedModules !== 0) {
+        totalModules = transformedModules;
+      }
       unknownTotalModules = false;
       options?.onEnd?.({
         error,
         totalModules,
         duration: performance.now() - startedAt,
       });
-    },
-    resolveId: {
-      order: 'post',
-      handler(id) {
-        options?.onResolve?.(id);
-      },
     },
     transform: {
       order: 'post',

@@ -5,12 +5,12 @@ import { BundlerContext } from '../core/types';
 import { logger } from '../logger';
 import { Reporter } from '../types';
 import { getBuildTotalModules, setBuildTotalModules } from '../utils/storage';
-import { ProgressBarRenderer } from './progress-bar';
+import { ProgressBarRenderManager } from './progress-bar';
 
 enum ProgressFlags {
   NONE = 0b0000,
   BUILD_IN_PROGRESS = 0b0001,
-  WATCH_CHANGE = 0b0010,
+  FILE_CHANGED = 0b0010,
 }
 
 function none(reporter: Reporter): StatusPluginOptions {
@@ -42,9 +42,8 @@ function progressBar(
 ): StatusPluginOptions {
   let flags = ProgressFlags.NONE;
   const initialTotalModules = getBuildTotalModules(context.storage, context.id);
-
-  const progressBarRenderer = ProgressBarRenderer.getInstance();
-  const progressBar = progressBarRenderer.register(context.id, {
+  const renderManager = ProgressBarRenderManager.getInstance();
+  const progressBar = renderManager.register(context.id, {
     label,
     total: initialTotalModules,
   });
@@ -57,39 +56,32 @@ function progressBar(
     if (totalModules != null) {
       progressBar.setTotal(totalModules);
     }
-    progressBar.setCurrent(transformedModules).update({ id });
-    progressBarRenderer.render();
+    progressBar.setCurrent(transformedModules).setModuleId(id);
+    renderManager.render();
   };
 
   return withReporter(reporter, {
     initialTotalModules,
     onStart() {
-      flags = ProgressFlags.BUILD_IN_PROGRESS;
+      flags |= ProgressFlags.BUILD_IN_PROGRESS;
       progressBar.start();
-      progressBarRenderer.start();
+      renderManager.start();
     },
     onEnd({ error, duration, totalModules }) {
       flags = ProgressFlags.NONE;
-      progressBar
-        .setTotal(totalModules)
-        .update({ duration, hasErrors: Boolean(error) })
-        .end();
-      progressBarRenderer.release();
+      progressBar.setTotal(totalModules).complete(duration, Boolean(error));
+      renderManager.release();
       setBuildTotalModules(context.storage, context.id, totalModules);
     },
     onTransform({ id, totalModules, transformedModules }) {
-      switch (true) {
-        case Boolean(flags & ProgressFlags.BUILD_IN_PROGRESS):
-          renderProgress(id, totalModules, transformedModules);
-          break;
-
-        case Boolean(flags & ProgressFlags.WATCH_CHANGE):
-          logger.debug('Transformed changed file', { id });
-          break;
+      if (flags & ProgressFlags.FILE_CHANGED) {
+        logger.debug('Transformed changed file', { id });
+        return;
       }
+      renderProgress(id, totalModules, transformedModules);
     },
     onWatchChange() {
-      flags = flags | ProgressFlags.WATCH_CHANGE;
+      flags |= ProgressFlags.FILE_CHANGED;
     },
   });
 }

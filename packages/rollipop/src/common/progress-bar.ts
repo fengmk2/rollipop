@@ -6,118 +6,176 @@ import { ellipsisLeft, StreamManager } from '../utils/terminal';
 const BAR_LENGTH = 25;
 const BLOCK_CHAR = '█';
 
+export type ProgressBarState =
+  | { type: 'idle' }
+  | { type: 'running'; moduleId?: string }
+  | { type: 'completed'; duration: number; hasErrors: boolean };
+
+export interface RenderContext {
+  label: string;
+  current: number;
+  total: number;
+  columns: number;
+}
+
+export interface StateRenderer<S extends ProgressBarState> {
+  render(state: S, context: RenderContext): string;
+}
+
+const idleRenderer: StateRenderer<{ type: 'idle' }> = {
+  render(_state, context) {
+    return `  ${chalk.gray('Waiting...')} ${chalk.gray(context.label)}\n`;
+  },
+};
+
+const runningRenderer: StateRenderer<{ type: 'running'; moduleId: string }> = {
+  render(state, context) {
+    const { label, current, total, columns } = context;
+    const unknownTotal = total === 0;
+    const progress = unknownTotal ? 0 : (current / total) * 100;
+
+    const width = unknownTotal ? 0 : progress * (BAR_LENGTH / 100);
+    const bg = chalk.white(BLOCK_CHAR);
+    const fg = chalk.cyan(BLOCK_CHAR);
+    const bar = range(BAR_LENGTH)
+      .map((n) => (n < width ? fg : bg))
+      .join('');
+
+    const progressLabel = unknownTotal
+      ? chalk.gray('(calculating...)')
+      : `(${progress.toFixed(2)}%)`;
+    const moduleCountLabel = unknownTotal ? `${current} modules` : `${current}/${total} modules`;
+
+    const line1 = [
+      chalk.cyan('●'),
+      bar,
+      progressLabel,
+      chalk.gray(moduleCountLabel),
+      chalk.gray(label),
+    ].join(' ');
+
+    const line2 = state.moduleId
+      ? '  ' + chalk.grey(ellipsisLeft(state.moduleId, columns - 10))
+      : '';
+
+    return `${line1}\n${line2}`;
+  },
+};
+
+const completedRenderer: StateRenderer<{
+  type: 'completed';
+  duration: number;
+  hasErrors: boolean;
+}> = {
+  render(state, context) {
+    const icon = state.hasErrors ? chalk.red('✘') : chalk.green('✔');
+    const durationInSeconds = (state.duration / 1000).toFixed(2);
+
+    const line1 = `${icon} Build completed ${chalk.gray(context.label)}`;
+    const line2 = chalk.grey(
+      `  Built in ${durationInSeconds}s (${context.current}/${context.total} modules)`,
+    );
+
+    return `${line1}\n${line2}`;
+  },
+};
+
+export class ProgressBarRenderer {
+  private readonly renderers = {
+    idle: idleRenderer,
+    running: runningRenderer,
+    completed: completedRenderer,
+  } as const;
+
+  render(state: ProgressBarState, context: RenderContext): string {
+    const renderer = this.renderers[state.type];
+    return renderer.render(state as never, context);
+  }
+}
+
 export interface ProgressBarOptions {
   label: string;
   total: number;
-}
-
-export type ProgressBarState = ProgressBarRunningState | ProgressBarDoneState;
-
-export interface ProgressBarRunningState {
-  id: string;
-}
-
-export interface ProgressBarDoneState {
-  hasErrors: boolean;
-  duration: number;
+  renderer?: ProgressBarRenderer;
 }
 
 export class ProgressBar {
-  private columns = (process.stderr.columns || 80) - 2;
-  private state: ProgressBarState | null = null;
+  private readonly columns = (process.stderr.columns || 80) - 2;
+  private readonly renderer: ProgressBarRenderer;
+  private readonly label: string;
+
+  private state: ProgressBarState = { type: 'idle' };
   private current = 0;
-  private total = 0;
-  private label: string;
+  private total: number;
 
   stale = false;
-  done = false;
 
   constructor(options: ProgressBarOptions) {
     this.total = options.total;
     this.label = options.label;
+    this.renderer = options.renderer ?? new ProgressBarRenderer();
   }
 
-  setCurrent(current: number) {
+  get done(): boolean {
+    return this.state.type === 'completed';
+  }
+
+  setCurrent(current: number): this {
     this.current = current;
     this.stale = true;
     return this;
   }
 
-  setTotal(total: number) {
+  setTotal(total: number): this {
     this.total = total;
     this.stale = true;
     return this;
   }
 
-  start() {
-    this.stale = true;
-    this.done = false;
-  }
-
-  end() {
-    this.done = true;
-  }
-
-  update(state: ProgressBarState) {
-    this.state = state;
+  start(): this {
+    this.state = { type: 'running' };
     this.stale = true;
     return this;
   }
 
-  render() {
-    const { state, label, current, total } = this;
-
-    const unknownTotal = total === 0;
-    const progress = unknownTotal ? 0 : (current / total) * 100;
-    let line1 = '';
-    let line2 = '';
-
-    if (state && 'duration' in state) {
-      const icon = state.hasErrors ? chalk.red('✘') : chalk.green('✔');
-      const durationInSeconds = (state.duration / 1000).toFixed(2);
-
-      line1 = `${icon} Build completed ${chalk.gray(label)}`;
-      line2 = chalk.grey(`  Built in ${durationInSeconds}s (${current}/${total} modules)`);
-    } else {
-      const width = unknownTotal ? 0 : progress * (BAR_LENGTH / 100);
-      const bg = chalk.white(BLOCK_CHAR);
-      const fg = chalk.cyan(BLOCK_CHAR);
-      const bar = range(BAR_LENGTH)
-        .map((n) => (n < width ? fg : bg))
-        .join('');
-
-      const progressLabel = unknownTotal
-        ? chalk.gray('(calculating...)')
-        : `(${progress.toFixed(2)}%)`;
-      const moduleCountLabel = unknownTotal ? `${current} modules` : `${current}/${total} modules`;
-
-      line1 = [
-        chalk.cyan('●'),
-        bar,
-        progressLabel,
-        chalk.gray(moduleCountLabel),
-        chalk.gray(label),
-      ].join(' ');
-      line2 = state?.id ? '  ' + chalk.grey(ellipsisLeft(state?.id, this.columns - 10)) : '';
+  setModuleId(moduleId: string): this {
+    if (this.state.type !== 'running') {
+      return this;
     }
+    this.state = { type: 'running', moduleId };
+    this.stale = true;
+    return this;
+  }
 
+  complete(duration: number, hasErrors = false): this {
+    this.state = { type: 'completed', duration, hasErrors };
+    this.stale = true;
+    return this;
+  }
+
+  render(): string {
     this.stale = false;
-
-    return `${line1}\n${line2}`;
+    const context: RenderContext = {
+      label: this.label,
+      current: this.current,
+      total: this.total,
+      columns: this.columns,
+    };
+    return this.renderer.render(this.state, context);
   }
 }
 
-export class ProgressBarRenderer {
-  private static instance: ProgressBarRenderer | null = null;
+export class ProgressBarRenderManager {
+  private static instance: ProgressBarRenderManager | null = null;
   private streamManager = new StreamManager();
   private progressBars: Map<string, ProgressBar> = new Map();
   private throttledRender: ThrottledFunction<() => void>;
 
   static getInstance() {
-    if (!ProgressBarRenderer.instance) {
-      ProgressBarRenderer.instance = new ProgressBarRenderer();
+    if (!ProgressBarRenderManager.instance) {
+      ProgressBarRenderManager.instance = new ProgressBarRenderManager();
     }
-    return ProgressBarRenderer.instance;
+    return ProgressBarRenderManager.instance;
   }
 
   private constructor() {

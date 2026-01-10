@@ -57,6 +57,7 @@ export type DevEngineOptions = Omit<DevOptions, 'watch'> & {
 
 export interface BundlerContext {
   id: string;
+  root: string;
   cache: FileSystemCache;
   storage: FileStorage;
   buildType: BuildType;

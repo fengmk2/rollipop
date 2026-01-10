@@ -58,10 +58,11 @@ export class Bundler {
     buildOptions: ResolvedBuildOptions,
   ) {
     const id = Bundler.createId(config, buildOptions);
+    const root = config.root;
     const cache = new FileSystemCache(config.root, id);
     const storage = FileStorage.getInstance(config.root);
     const state: BundlerState = { hmrUpdates: new Set() };
-    const context: BundlerContext = { id, cache, storage, buildType, state };
+    const context: BundlerContext = { id, root, cache, storage, buildType, state };
 
     return context;
   }
