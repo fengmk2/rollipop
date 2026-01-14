@@ -67,7 +67,7 @@ describe('loadEnv', () => {
     expect(env).toEqual({ ROLLIPOP_FOO: '4', ROLLIPOP_BAR: '5', ROLLIPOP_BAZ: '3' });
   });
 
-  it('should override environment variables order: `.env` -> `.env.local` -> `.env.[mode].local` -> `.env.[mode]`', () => {
+  it('should override environment variables order: `.env` -> `.env.local` -> `.env.[mode]` -> `.env.[mode].local`', () => {
     mockEnvFiles({
       '.env': ['ROLLIPOP_FOO=0'].join('\n'),
       '.env.local': ['ROLLIPOP_FOO=1', 'ROLLIPOP_BAR=2'].join('\n'),

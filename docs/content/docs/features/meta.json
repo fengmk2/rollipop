@@ -3,6 +3,7 @@
   "pages": [
     "dev-server",
     "devtools",
+    "env",
     "flow",
     "svg",
     "reporter",
