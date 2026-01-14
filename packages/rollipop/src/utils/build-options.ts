@@ -6,7 +6,6 @@ import type { ResolvedConfig } from '../config';
 import type { BuildOptions } from '../core/types';
 
 const DEFAULT_BUILD_OPTIONS = {
-  dev: true,
   cache: true,
   minify: false,
 } satisfies Partial<BuildOptions>;
@@ -20,7 +19,10 @@ export function resolveBuildOptions(config: ResolvedConfig, buildOptions: BuildO
     buildOptions.sourcemap = path.resolve(config.root, buildOptions.sourcemap);
   }
 
-  return merge(DEFAULT_BUILD_OPTIONS, { dev: config.mode === 'development', ...buildOptions });
+  return merge(DEFAULT_BUILD_OPTIONS, {
+    dev: buildOptions.dev ?? config.mode === 'development',
+    ...buildOptions,
+  });
 }
 
 export type ResolvedBuildOptions = ReturnType<typeof resolveBuildOptions>;
