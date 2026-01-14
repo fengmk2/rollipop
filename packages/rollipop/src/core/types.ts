@@ -53,6 +53,12 @@ export type DevEngineOptions = Omit<DevOptions, 'watch'> & {
    * The port to run the dev server on.
    */
   port: number;
+  /**
+   * Whether to use HTTPS.
+   *
+   * Defaults to `false`.
+   */
+  https?: boolean;
 };
 
 export interface BundlerContext {

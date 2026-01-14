@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 import type * as rolldown from '@rollipop/rolldown';
 import type { TransformOptions } from '@rollipop/rolldown/experimental';
-import { isNotNil, merge } from 'es-toolkit';
+import { invariant, isNotNil, merge } from 'es-toolkit';
 
 import { asLiteral, asIdentifier, iife, nodeEnvironment } from '../common/code';
 import { isDebugEnabled } from '../common/debug';
@@ -12,12 +12,14 @@ import { GLOBAL_IDENTIFIER } from '../constants';
 import { getGlobalVariables } from '../internal/react-native';
 import { ResolvedBuildOptions } from '../utils/build-options';
 import { resolveHmrConfig } from '../utils/config';
+import { defineEnvFromObject } from '../utils/env';
+import { getBaseUrl } from '../utils/server';
 import { loadEnv } from './env';
 import { prelude, status, reactRefresh, reactNative, json, svg, babel, swc } from './plugins';
 import { printPluginLog } from './plugins/context';
 import { getPersistCachePlugins } from './plugins/utils/persist-cache';
 import { withTransformBoundary } from './plugins/utils/transform-utils';
-import { BundlerContext } from './types';
+import type { BundlerContext, DevEngineOptions } from './types';
 
 export interface RolldownOptions {
   input?: rolldown.InputOptions;
@@ -30,6 +32,7 @@ export async function resolveRolldownOptions(
   context: BundlerContext,
   config: ResolvedConfig,
   buildOptions: ResolvedBuildOptions,
+  devEngineOptions?: DevEngineOptions,
 ): Promise<RolldownOptions> {
   const cachedOptions = resolveRolldownOptions.cache.get(context.id);
 
@@ -37,7 +40,21 @@ export async function resolveRolldownOptions(
     return cachedOptions;
   }
 
+  const isDevServerMode = config.mode === 'development' && context.buildType === 'serve';
+
+  invariant(
+    isDevServerMode ? devEngineOptions != null : true,
+    'devEngineOptions is required in dev server mode',
+  );
+
   const env = loadEnv(config);
+  const builtInEnv = {
+    MODE: config.mode,
+    BASE_URL: isDevServerMode
+      ? getBaseUrl(devEngineOptions!.host, devEngineOptions!.port, devEngineOptions!.https)
+      : undefined,
+  };
+
   const { platform, dev, cache, minify } = buildOptions;
   const { sourceExtensions, assetExtensions, preferNativePlatform, ...rolldownResolve } =
     config.resolver;
@@ -76,9 +93,8 @@ export async function resolveRolldownOptions(
         global: asIdentifier(GLOBAL_IDENTIFIER),
         'process.env.NODE_ENV': asLiteral(nodeEnvironment(dev)),
         'process.env.DEBUG_ROLLIPOP': asLiteral(isDebugEnabled()),
-        ...Object.fromEntries(
-          Object.entries(env).map(([key, value]) => [`import.meta.env.${key}`, asLiteral(value)]),
-        ),
+        ...defineEnvFromObject(env),
+        ...defineEnvFromObject(builtInEnv),
       },
       typescript: {
         removeClassFieldsWithoutInitializer: true,
@@ -93,7 +109,6 @@ export async function resolveRolldownOptions(
     rolldownTransform,
   );
 
-  const isDevServerMode = config.mode === 'development' && context.buildType === 'serve';
   const devServerPlugins = isDevServerMode ? [reactRefresh()] : null;
   const { beforeTransform, afterTransform } = getPersistCachePlugins({
     enabled: cache,

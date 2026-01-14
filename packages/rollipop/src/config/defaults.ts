@@ -30,7 +30,7 @@ export function getDefaultConfig(basePath: string, mode?: Config['mode']) {
 
   const defaultConfig = {
     root: basePath,
-    mode,
+    mode: mode ?? 'development',
     entry: 'index.js',
     resolver: {
       sourceExtensions: DEFAULT_SOURCE_EXTENSIONS,

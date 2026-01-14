@@ -28,6 +28,7 @@ export class Bundler {
       context,
       config,
       resolvedBuildOptions,
+      devEngineOptions,
     );
 
     const devServerOptions = getOverrideOptionsForDevServer(config);
