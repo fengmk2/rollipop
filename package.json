@@ -8,14 +8,15 @@
   ],
   "scripts": {
     "typecheck:all": "yarn workspaces foreach --all --topological-dev run typecheck",
+    "format": "oxfmt",
     "lint": "oxlint --type-aware --deny-warnings",
     "lint:fix": "oxlint --type-aware --deny-warnings --fix",
     "test:all": "yarn workspaces foreach --all --topological-dev --no-private run test",
     "build:all": "yarn workspaces foreach --all --topological-dev --no-private run build",
     "docs:dev": "yarn workspace docs dev",
     "docs:build": "yarn workspace docs build",
-    "format": "oxfmt",
-    "publish": ".scripts/publish.sh"
+    "scripts:version": ".scripts/version.sh",
+    "scripts:publish": ".scripts/publish.sh"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",

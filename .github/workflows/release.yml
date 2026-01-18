@@ -7,6 +7,19 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      preset:
+        description: 'The preset version to release'
+        required: true
+        default: 'manual'
+        type: choice
+        options:
+        - manual
+        - dev
+      version:
+        description: The version to release
+        type: string
 
 jobs:
   release:
@@ -37,11 +50,26 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Publish with custom version
+        if: inputs.preset
+        run: |
+          if [ "${{ inputs.preset }}" = "manual" ]; then
+            if [ -z "${{ inputs.version }}" ]; then
+              echo "No version provided"
+              exit 1
+            fi
+            yarn scripts:version ${{ inputs.version }}
+          else
+            yarn scripts:version ${{ inputs.preset }}
+          fi
+          yarn scripts:publish
+
       - name: Create Release Pull Request
+        if: ${{ !inputs.preset }}
         uses: changesets/action@v1
         with:
           version: yarn changeset version
-          publish: yarn publish
+          publish: yarn scripts:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BASE_BRANCH: ${{ env.BASE_BRANCH }}
