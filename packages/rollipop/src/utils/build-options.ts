@@ -20,8 +20,8 @@ export function resolveBuildOptions(config: ResolvedConfig, buildOptions: BuildO
   }
 
   return merge(DEFAULT_BUILD_OPTIONS, {
-    dev: buildOptions.dev ?? config.mode === 'development',
     ...buildOptions,
+    dev: buildOptions.dev ?? config.mode === 'development',
   });
 }
 
