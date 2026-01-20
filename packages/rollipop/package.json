@@ -66,9 +66,9 @@
   "scripts": {
     "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest --run",
+    "test": "vite test --run",
     "execute": "node bin/index.js",
-    "build": "tsdown"
+    "build": "vite lib"
   },
   "dependencies": {
     "@babel/core": "^7.28.5",
@@ -121,8 +121,8 @@
     "@types/babel__generator": "^7",
     "magic-string": "^0.30.21",
     "mitt": "^3.0.1",
-    "tsdown": "catalog:",
     "typescript": "catalog:",
+    "vite-plus": "catalog:",
     "vitest": "catalog:"
   }
 }

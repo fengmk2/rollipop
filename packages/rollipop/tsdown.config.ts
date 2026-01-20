@@ -4,7 +4,7 @@ import path from 'node:path';
 import type { RolldownPluginOption } from '@rollipop/rolldown';
 import * as swc from '@swc/core';
 import { invariant } from 'es-toolkit';
-import { defineConfig, type UserConfig } from 'tsdown';
+import { defineConfig, type UserConfig } from 'vite-plus/lib';
 
 const rawPackageJson = fs.readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8');
 const { version } = JSON.parse(rawPackageJson);
