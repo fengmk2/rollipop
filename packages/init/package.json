@@ -22,8 +22,8 @@
     "execute": "tsx src/index.ts",
     "prepack": "yarn build",
     "typecheck": "tsc --noEmit",
-    "test": "vitest --run --passWithNoTests",
-    "build": "tsdown"
+    "test": "vite test --run --passWithNoTests",
+    "build": "vite lib"
   },
   "dependencies": {
     "fast-glob": "^3.3.3",
@@ -32,9 +32,9 @@
     "xcode": "^3.0.1"
   },
   "devDependencies": {
-    "tsdown": "catalog:",
     "tsx": "^4.21.0",
     "typescript": "catalog:",
+    "vite-plus": "catalog:",
     "vitest": "catalog:"
   }
 }
